@@ -1,1 +1,45 @@
 [WinError 1314] 클라이언트가 필요한 권한을 가지고 있지 않습니다: 'C:\\Users\\User\\PycharmProjects\\pythonProject1\\mt_via_anomalib\\mt_via_anomalib\\results\\AiVad\\Avenue\\v0' -> 'C:\\Users\\User\\PycharmmProjects\\pythonProject1\\mt_via_anomalib\\mt_via_anomalib\\results\\AiVad\\Avenue\\latest'
+
+
+259 M     Trainable params
+447 K     Non-trainable params
+260 M     Total params
+1,041.500 Total estimated model params size (MB)
+670       Modules in train mode
+227       Modules in eval mode
+❌ 학습 중 오류 발생: 'CustomVideoDataModule' object has no attribute 'train_data'
+Traceback (most recent call last):
+  File "C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib\train_custom_video.py", line 233, in main
+    engine.fit(model=model, datamodule=datamodule)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\engine\engine.py", line 412, in fit
+    self.trainer.fit(model, train_dataloaders, val_dataloaders, datamodule, ckpt_path)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\trainer\trainer.py", line 560, in fit
+    call._call_and_handle_interrupt(
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\trainer\call.py", line 49, in _call_and_handle_interrupt
+    return trainer_fn(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\trainer\trainer.py", line 598, in _fit_impl
+    self._run(model, ckpt_path=ckpt_path)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\trainer\trainer.py", line 1011, in _run
+    results = self._run_stage()
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\trainer\trainer.py", line 1055, in _run_stage
+    self.fit_loop.run()
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\loops\fit_loop.py", line 208, in run
+    self.setup_data()
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\loops\fit_loop.py", line 237, in setup_data
+    train_dataloader = _request_dataloader(source)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\trainer\connectors\data_connector.py", line 334, in _request_dataloader
+    return data_source.dataloader()
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\trainer\connectors\data_connector.py", line 301, in dataloader
+    return call._call_lightning_datamodule_hook(self.instance.trainer, self.name)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\trainer\call.py", line 199, in _call_lightning_datamodule_hook
+    return fn(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\data\datamodules\base\image.py", line 371, in train_dataloader
+    dataset=self.train_data,
+AttributeError: 'CustomVideoDataModule' object has no attribute 'train_data'
+
+💥 학습에 실패했습니다.
+
+📋 체크리스트:
+1. custom_video_dataset/train/normal/ 폴더에 비디오 파일이 있는지 확인
+2. 비디오 파일 형식이 지원되는지 확인 (.mp4, .avi, .mov, .mkv, .flv, .wmv)
+3. 비디오 파일이 손상되지 않았는지 확인
