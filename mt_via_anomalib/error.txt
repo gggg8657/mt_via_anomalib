@@ -1,56 +1,19 @@
-(mt_p310) C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib>python train_custom_fixed.py
+(mt_p310) C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib>python train_custom_final.py
 ============================================================
-🔧 수정된 커스텀 비디오 데이터셋으로 AI-VAD 학습
+🏆 최종 수정된 커스텀 비디오 데이터셋으로 AI-VAD 학습
 ============================================================
-🚀 커스텀 비디오 데이터셋으로 AI-VAD 모델 학습 시작 (수정된 버전)...
-📁 커스텀 데이터셋 준비 중...
+🚀 커스텀 비디오 데이터셋으로 AI-VAD 모델 학습 시작 (최종 수정 버전)...
+📁 커스텀 Avenue 형식 데이터셋 준비 중...
 ✅ 기존 데이터셋 정리 완료
-✅ 복사 완료: normal_video.mp4 -> 00.mp4
-✅ 복사 완료: unknown_video.mp4 -> 01.mp4
-✅ 커스텀 데이터셋 준비 완료: 2개 파일 처리됨
+✅ 복사 완료: normal_video.mp4 -> 01.avi
+✅ 테스트 복사: 01.avi -> 01.avi
+❌ 복사 실패: C:\Users\User\Documents\repos\VAD\CV_module_test_tmp\STEAD\videos\normal_video.mp4 - name 'j' is not defined
+✅ 복사 완료: unknown_video.mp4 -> 02.avi
+✅ Avenue 메타데이터 생성 완료
+✅ Avenue 형식 데이터셋 준비 완료: 2개 파일 처리됨
 CPU 사용
 📁 데이터셋 로드 중...
-✅ 데이터셋 로드 완료
-🤖 AI-VAD 모델 초기화...
-✅ 모델 초기화 완료
-⚙️  학습 엔진 설정...
-✅ 학습 엔진 설정 완료
-🎯 학습 시작!
-GPU available: False, used: False
-TPU available: False, using: 0 TPU cores
-HPU available: False, using: 0 HPUs
-`Trainer(val_check_interval=1.0)` was configured so validation will run at the end of the training epoch..
-❌ 학습 중 오류 발생: cannot set a frame with no defined index and a scalar
-Traceback (most recent call last):
-  File "C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib\train_custom_fixed.py", line 233, in main
-    engine.fit(model=model, datamodule=datamodule)
-  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\engine\engine.py", line 412, in fit
-    self.trainer.fit(model, train_dataloaders, val_dataloaders, datamodule, ckpt_path)
-  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\trainer\trainer.py", line 560, in fit
-    call._call_and_handle_interrupt(
-  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\trainer\call.py", line 49, in _call_and_handle_interrupt
-    return trainer_fn(*args, **kwargs)
-  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\trainer\trainer.py", line 598, in _fit_impl
-    self._run(model, ckpt_path=ckpt_path)
-  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\trainer\trainer.py", line 973, in _run
-    call._call_setup_hook(self)  # allow user to set up LightningModule in accelerator environment
-  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\trainer\call.py", line 108, in _call_setup_hook
-    _call_lightning_datamodule_hook(trainer, "setup", stage=fn)
-  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\trainer\call.py", line 199, in _call_lightning_datamodule_hook
-    return fn(*args, **kwargs)
-  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\data\datamodules\base\image.py", line 154, in setup
-    self._setup(stage)
-  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\data\datamodules\video\avenue.py", line 178, in _setup
-    self.train_data = AvenueDataset(
-  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\data\datasets\video\avenue.py", line 115, in __init__
-    self.samples = make_avenue_dataset(self.root, self.gt_dir, self.split)
-  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\data\datasets\video\avenue.py", line 164, in make_avenue_dataset
-    samples.loc[samples.folder == "training_videos", "split"] = "train"
-  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\pandas\core\indexing.py", line 912, in __setitem__
-    iloc._setitem_with_indexer(indexer, value, self.name)
-  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\pandas\core\indexing.py", line 1848, in _setitem_with_indexer
-    raise ValueError(
-ValueError: cannot set a frame with no defined index and a scalar
+❌ 데이터셋 로드 실패: unsupported operand type(s) for /: 'str' and 'str'
 
 💥 학습에 실패했습니다.
 
