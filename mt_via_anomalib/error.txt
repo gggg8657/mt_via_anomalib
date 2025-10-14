@@ -1,15 +1,28 @@
-[WinError 1314] 클라이언트가 필요한 권한을 가지고 있지 않습니다: 'C:\\Users\\User\\PycharmProjects\\pythonProject1\\mt_via_anomalib\\mt_via_anomalib\\results\\AiVad\\Avenue\\v0' -> 'C:\\Users\\User\\PycharmmProjects\\pythonProject1\\mt_via_anomalib\\mt_via_anomalib\\results\\AiVad\\Avenue\\latest'
-
-
-259 M     Trainable params
-447 K     Non-trainable params
-260 M     Total params
-1,041.500 Total estimated model params size (MB)
-670       Modules in train mode
-227       Modules in eval mode
-❌ 학습 중 오류 발생: 'CustomVideoDataModule' object has no attribute 'train_data'
+(mt_p310) C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib>python train_custom_fixed.py
+============================================================
+🔧 수정된 커스텀 비디오 데이터셋으로 AI-VAD 학습
+============================================================
+🚀 커스텀 비디오 데이터셋으로 AI-VAD 모델 학습 시작 (수정된 버전)...
+📁 커스텀 데이터셋 준비 중...
+✅ 기존 데이터셋 정리 완료
+✅ 복사 완료: normal_video.mp4 -> 00.mp4
+✅ 복사 완료: unknown_video.mp4 -> 01.mp4
+✅ 커스텀 데이터셋 준비 완료: 2개 파일 처리됨
+CPU 사용
+📁 데이터셋 로드 중...
+✅ 데이터셋 로드 완료
+🤖 AI-VAD 모델 초기화...
+✅ 모델 초기화 완료
+⚙️  학습 엔진 설정...
+✅ 학습 엔진 설정 완료
+🎯 학습 시작!
+GPU available: False, used: False
+TPU available: False, using: 0 TPU cores
+HPU available: False, using: 0 HPUs
+`Trainer(val_check_interval=1.0)` was configured so validation will run at the end of the training epoch..
+❌ 학습 중 오류 발생: cannot set a frame with no defined index and a scalar
 Traceback (most recent call last):
-  File "C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib\train_custom_video.py", line 233, in main
+  File "C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib\train_custom_fixed.py", line 233, in main
     engine.fit(model=model, datamodule=datamodule)
   File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\engine\engine.py", line 412, in fit
     self.trainer.fit(model, train_dataloaders, val_dataloaders, datamodule, ckpt_path)
@@ -19,27 +32,30 @@ Traceback (most recent call last):
     return trainer_fn(*args, **kwargs)
   File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\trainer\trainer.py", line 598, in _fit_impl
     self._run(model, ckpt_path=ckpt_path)
-  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\trainer\trainer.py", line 1011, in _run
-    results = self._run_stage()
-  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\trainer\trainer.py", line 1055, in _run_stage
-    self.fit_loop.run()
-  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\loops\fit_loop.py", line 208, in run
-    self.setup_data()
-  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\loops\fit_loop.py", line 237, in setup_data
-    train_dataloader = _request_dataloader(source)
-  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\trainer\connectors\data_connector.py", line 334, in _request_dataloader
-    return data_source.dataloader()
-  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\trainer\connectors\data_connector.py", line 301, in dataloader
-    return call._call_lightning_datamodule_hook(self.instance.trainer, self.name)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\trainer\trainer.py", line 973, in _run
+    call._call_setup_hook(self)  # allow user to set up LightningModule in accelerator environment
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\trainer\call.py", line 108, in _call_setup_hook
+    _call_lightning_datamodule_hook(trainer, "setup", stage=fn)
   File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\trainer\call.py", line 199, in _call_lightning_datamodule_hook
     return fn(*args, **kwargs)
-  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\data\datamodules\base\image.py", line 371, in train_dataloader
-    dataset=self.train_data,
-AttributeError: 'CustomVideoDataModule' object has no attribute 'train_data'
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\data\datamodules\base\image.py", line 154, in setup
+    self._setup(stage)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\data\datamodules\video\avenue.py", line 178, in _setup
+    self.train_data = AvenueDataset(
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\data\datasets\video\avenue.py", line 115, in __init__
+    self.samples = make_avenue_dataset(self.root, self.gt_dir, self.split)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\data\datasets\video\avenue.py", line 164, in make_avenue_dataset
+    samples.loc[samples.folder == "training_videos", "split"] = "train"
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\pandas\core\indexing.py", line 912, in __setitem__
+    iloc._setitem_with_indexer(indexer, value, self.name)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\pandas\core\indexing.py", line 1848, in _setitem_with_indexer
+    raise ValueError(
+ValueError: cannot set a frame with no defined index and a scalar
 
 💥 학습에 실패했습니다.
 
-📋 체크리스트:
-1. custom_video_dataset/train/normal/ 폴더에 비디오 파일이 있는지 확인
-2. 비디오 파일 형식이 지원되는지 확인 (.mp4, .avi, .mov, .mkv, .flv, .wmv)
-3. 비디오 파일이 손상되지 않았는지 확인
+📋 해결 방법:
+1. video_files 리스트에 올바른 비디오 파일 경로를 추가하세요
+2. 비디오 파일이 존재하는지 확인하세요
+3. 지원되는 형식인지 확인하세요 (.mp4, .avi, .mov, .mkv, .flv, .wmv)
+4. 관리자 권한으로 실행하세요

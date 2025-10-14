@@ -76,6 +76,9 @@ def main():
         # "C:\\Users\\YourName\\Videos\\normal_video1.mp4",
         # "C:\\Users\\YourName\\Videos\\normal_video2.avi",
         # "D:\\SecurityCameras\\normal_footage.mp4",
+        "C:\\Users\\User\Documents\\repos\VAD\CV_module_test_tmp\STEAD\\videos\\normal_video.mp4",
+        "C:\\Users\\User\Documents\\repos\VAD\CV_module_test_tmp\STEAD\\videos\\unknown_video.mp4",
+        # "C:\Users\User\Documents\repos\VAD\CV_module_test_tmp\STEAD\videos\rest_video.mp4"
     ]
     
     # 2. 데이터셋이 저장될 경로
