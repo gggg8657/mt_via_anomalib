@@ -967,3 +967,48 @@ QWindowsWindow::setGeometry: Unable to set geometry 1920x1049+0+23 (frame: 1936x
 QWindowsWindow::setGeometry: Unable to set geometry 1920x1053+0+23 (frame: 1936x1092-8-8) on QWidgetWindow/"MainWindowClassWindow" on "MACROSILICON". Resulting geometry: 1920x1009+0+23 (frame: 1936x1048-8-8) margins: 8, 31, 8, 8 minimum size: 1559x1053 MINMAXINFO(maxSize=POINT(x=0, y=0), maxpos=POINT(x=0, y=0), maxtrack=POINT(x=0, y=0), mintrack=POINT(x=1575, y=1092)))
 QWindowsWindow::setGeometry: Unable to set geometry 1920x1057+0+23 (frame: 1936x1096-8-8) on QWidgetWindow/"MainWindowClassWindow" on "MACROSILICON". Resulting geometry: 1920x1009+0+23 (frame: 1936x1048-8-8) margins: 8, 31, 8, 8 minimum size: 1566x1057 MINMAXINFO(maxSize=POINT(x=0, y=0), maxpos=POINT(x=0, y=0), maxtrack=POINT(x=0, y=0), mintrack=POINT(x=1582, y=1096)))
 QWindowsWindow::setGeometry: Unable to set geometry 1920x1061+0+23 (frame: 1936x1100-8-8) on QWidgetWindow/"MainWindowClassWindow" on "MACROSILICON". Resulting geometry: 1920x1009+0+23 (frame: 1936x1048-8-8) margins: 8, 31, 8, 8 minimum size: 1573x1061 MINMAXINFO(maxSize=POINT(x=0, y=0), maxpos=POINT(x=0, y=0), maxtrack=POINT(x=0, y=0), mintrack=POINT(x=1589, y=1100)))
+
+
+--- ISSUE 2025.10.15. 20:45 ---
+RuntimeError: Input type (torch.FloatTensor) and weight type (torch.cuda.FloatTensor) should be the same or input should be a MKLDNN tensor and weight is a dense tensor
+❌ 프레임 처리 오류: Input type (torch.FloatTensor) and weight type (torch.cuda.FloatTensor) should be the same or input should be a MKLDNN tensor and weight is a dense tensor
+Traceback (most recent call last):
+  File "C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib\realtime_ui_advanced_windows.py", line 664, in on_frame
+    overlay, score, info = self.inferencer.infer_on_frame(frame_bgr)
+  File "C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib\realtime_ui_advanced_windows.py", line 270, in infer_on_frame
+    flows, regions = self._extract_regions_and_flows(t0.unsqueeze(0), t1.unsqueeze(0))
+  File "C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib\realtime_ui_advanced_windows.py", line 185, in _extract_regions_and_flows
+    flows = self.core.flow_extractor(first_frame, last_frame)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\models\video\ai_vad\flow.py", line 75, in forward
+    flows = self.model(first_frame, last_frame)[-1]
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torchvision\models\optical_flow\raft.py", line 492, in forward
+    fmaps = self.feature_encoder(torch.cat([image1, image2], dim=0))
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torchvision\models\optical_flow\raft.py", line 160, in forward
+    x = self.convnormrelu(x)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\container.py", line 240, in forward
+    input = module(input)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\conv.py", line 554, in forward
+    return self._conv_forward(input, self.weight, self.bias)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\conv.py", line 549, in _conv_forward
+    return F.conv2d(
+RuntimeError: Input type (torch.FloatTensor) and weight type (torch.cuda.FloatTensor) should be the same or input should be a MKLDNN tensor and weight is a dense tensor
