@@ -770,3 +770,79 @@ AttributeError: 'list' object has no attribute 'pred_score'
 1. GPU 드라이버 및 CUDA 설치 확인
 2. PyTorch GPU 버전 설치 확인
 3. 관리자 권한으로 실행
+
+--- training success ---
+(mt_p310) C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib>python train_aivad_success.py
+🔧 GPU 및 cuDNN 설정 최적화 중...
+✅ GPU 사용 가능: NVIDIA GeForce RTX 4090
+✅ GPU 메모리: 24.0 GB
+============================================================
+🏆 성공하는 AI-VAD 모델 학습 (Post-processor 오류 해결)
+============================================================
+🚀 성공하는 AI-VAD 모델 학습 시작...
+🎯 사용 디바이스: cuda
+📊 GPU 메모리 사용량: 0.000 GB (할당됨), 0.000 GB (캐시됨)
+🤖 AI-VAD 모델 초기화...
+✅ 모델 초기화 완료
+✅ 모델을 GPU로 이동 완료
+📊 모델 로드 후 GPU 메모리: 0.755 GB (할당됨), 0.766 GB (캐시됨)
+
+🔍 모델 컴포넌트 테스트...
+🔍 모델 컴포넌트별 테스트 중...
+🔍 Flow extractor 테스트...
+✅ Flow extractor 성공: torch.Size([1, 2, 224, 224])
+
+🔍 모델 핵심 부분 테스트...
+🔍 모델 핵심 부분 테스트 중...
+🔍 모델 핵심 forward 테스트...
+✅ 모델 핵심 forward 성공!
+   - 출력 타입: <class 'list'>
+
+🧪 Post-processor 우회 테스트...
+🧪 Post-processor 우회 모델 테스트 중...
+📊 AI-VAD용 정확한 비디오 배치 생성 중...
+✅ 비디오 배치 생성 완료: torch.Size([2, 2, 3, 224, 224])
+   - 배치 크기: 2
+   - 프레임 수: 2
+   - 채널 수: 3 (RGB)
+   - 해상도: 224x224
+✅ 비디오 배치를 GPU로 이동 완료
+✅ Forward pass 성공!
+   - 입력 형태: torch.Size([2, 2, 3, 224, 224])
+   - 출력 형태: list with 2 elements
+     - Element 0: <class 'dict'>
+     - Element 1: <class 'dict'>
+
+✅ 모든 테스트 성공!
+💾 체크포인트 저장: aivad_success_checkpoint.ckpt
+📊 체크포인트 크기: 757.9 MB
+
+🎉 모델 테스트가 성공적으로 완료되었습니다!
+이제 realtime_ui_advanced_windows.py에서 체크포인트를 로드할 수 있습니다.
+
+체크포인트 파일:
+- aivad_success_checkpoint.ckpt
+
+💡 이 버전의 특징:
+- Post-processor 오류 완전 해결
+- Tensor 크기 문제 해결
+- GPU 가속 지원
+- 컴포넌트별 테스트 수행
+- Post-processor 우회 기능
+- 안정적인 모델 핵심 테스트
+
+
+--- new issue UI ADAPTATION ---
+
+(mt_p310) C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib>pyton realtime_ui_advanced_windows.py
+'pyton'은(는) 내부 또는 외부 명령, 실행할 수 있는 프로그램, 또는
+배치 파일이 아닙니다.
+
+(mt_p310) C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib>python realtime_ui_advanced_windows.py
+C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib\realtime_ui_advanced_windows.py:651: DeprecationWarning: Enum value 'Qt::ApplicationAttribute.AA_EnableHighDpiScaling' is marked as deprecated, please check the documentation for more information.
+  QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
+C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib\realtime_ui_advanced_windows.py:652: DeprecationWarning: Enum value 'Qt::ApplicationAttribute.AA_UseHighDpiPixmaps' is marked as deprecated, please check the documentation for more information.
+  QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
+윈도우즈 GPU 사용: NVIDIA GeForce RTX 4090
+체크포인트 로드 실패: 'pytorch-lightning_version'
+
