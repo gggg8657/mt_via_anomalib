@@ -846,3 +846,20 @@ C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib\rea
 윈도우즈 GPU 사용: NVIDIA GeForce RTX 4090
 체크포인트 로드 실패: 'pytorch-lightning_version'
 
+--- ISSUE ---
+
+(mt_p310) C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib>python create_ui_checkpoint.py
+🔧 GPU 설정 중...
+✅ GPU 사용: NVIDIA GeForce RTX 4090
+============================================================
+🏆 UI 호환 체크포인트 생성
+============================================================
+🤖 AI-VAD 모델 초기화...
+✅ 모델을 GPU로 이동 완료
+❌ 체크포인트 생성 실패: module 'pytorch_lightning' has no attribute 'save_checkpoint'
+Traceback (most recent call last):
+  File "C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib\create_ui_checkpoint.py", line 38, in create_ui_compatible_checkpoint
+    pl.save_checkpoint(model, checkpoint_path)
+AttributeError: module 'pytorch_lightning' has no attribute 'save_checkpoint'
+
+💥 체크포인트 생성 실패
