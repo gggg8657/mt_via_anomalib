@@ -277,12 +277,14 @@ class SimpleMainWindow(QtWidgets.QMainWindow):
             # 간단한 더미 추론
             if self.model_loaded:
                 # 더 현실적인 점수 생성 (대부분 정상, 가끔 이상)
-                # 정상: 0.0 ~ 0.4, 이상: 0.6 ~ 1.0, 임계치: 0.5
-                if np.random.random() < 0.9:  # 90% 확률로 정상
-                    score = np.random.uniform(0.0, 0.4)  # 정상 범위
+                # 정상: 0.0 ~ 0.3, 이상: 0.7 ~ 1.0, 임계치: 0.5
+                if np.random.random() < 0.95:  # 95% 확률로 정상
+                    # 정상 범위: 대부분 0.1 ~ 0.3
+                    score = np.random.beta(2, 5) * 0.4  # 베타 분포로 더 현실적
                     is_anomaly = score > 0.5  # 임계치 0.5
-                else:  # 10% 확률로 이상
-                    score = np.random.uniform(0.6, 1.0)  # 이상 범위
+                else:  # 5% 확률로 이상
+                    # 이상 범위: 0.7 ~ 1.0
+                    score = 0.7 + np.random.random() * 0.3
                     is_anomaly = True
                 
                 # 점수 히스토리에 추가
