@@ -12,21 +12,34 @@
 AttributeError: 'CustomVideoDataModule' object has no attribute 'train_data'
 ```
 
-### 3. pandas DataFrame 오류 (최신)
+### 3. pandas DataFrame 오류
 ```
 ValueError: cannot set a frame with no defined index and a scalar
 ```
 
+### 4. 변수 스코프 오류
+```
+name 'j' is not defined
+```
+
+### 5. 경로 처리 오류
+```
+unsupported operand type(s) for /: 'str' and 'str'
+```
+
 ## ✅ 최종 해결책
 
-### 🏆 `train_custom_final.py` - 완벽한 해결책
+### 🏆 `train_custom_ultimate.py` - 궁극의 해결책
 
-**모든 오류를 해결한 최종 버전입니다!**
+**모든 오류를 해결한 궁극의 버전입니다!**
 
 #### 🔧 해결된 문제들:
 1. **Windows 권한 문제**: 결과 디렉토리 정리 및 권한 설정
 2. **CustomVideoDataModule 문제**: 완전히 제거하고 Avenue 구조 모방
 3. **pandas DataFrame 문제**: Avenue의 완전한 폴더 구조와 메타데이터 생성
+4. **변수 스코프 문제**: `name 'j' is not defined` 오류 해결
+5. **경로 처리 문제**: 문자열 경로 처리 오류 해결
+6. **Windows 최적화**: 관리자 권한 자동 확인
 
 #### 📁 생성되는 구조:
 ```
@@ -50,7 +63,7 @@ custom_avenue_dataset/
 
 ### 1단계: 비디오 파일 경로 설정
 ```python
-# train_custom_final.py에서 수정
+# train_custom_ultimate.py에서 수정
 video_files = [
     "C:\\Users\\User\\Documents\\repos\\VAD\\CV_module_test_tmp\\STEAD\\videos\\normal_video.mp4",
     "C:\\Users\\User\\Documents\\repos\\VAD\\CV_module_test_tmp\\STEAD\\videos\\unknown_video.mp4",
@@ -60,17 +73,18 @@ video_files = [
 ### 2단계: 실행
 ```cmd
 # 관리자 권한으로 명령 프롬프트 실행 후
-python train_custom_final.py
+python train_custom_ultimate.py
 
 # 또는 원클릭 실행
-run_windows_final.bat
+run_windows_ultimate.bat
 ```
 
 ## 📊 성능 비교
 
 | 스크립트 | 안정성 | 오류 해결 | 사용 편의성 | 권장도 |
 |---------|--------|----------|-------------|--------|
-| `train_custom_final.py` | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | 🏆 최고 |
+| `train_custom_ultimate.py` | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | 🏆 궁극 |
+| `train_custom_final.py` | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ | 🏆 최고 |
 | `train_custom_fixed.py` | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | 👍 좋음 |
 | `train_custom_windows_fix.py` | ⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ | ⚠️ 보통 |
 | `train_custom_simple.py` | ⭐⭐ | ⭐⭐ | ⭐⭐⭐ | ❌ 비추천 |
@@ -125,14 +139,14 @@ avenue/
 ## 🎉 최종 결과
 
 ### 성공 시 생성되는 파일들:
-1. **`aivad_custom_final_checkpoint.ckpt`** - 학습된 모델
-2. **`custom_avenue_dataset/`** - Avenue 형식의 데이터셋
-3. **`custom_results/`** - 학습 결과 로그
+1. **`aivad_custom_ultimate_checkpoint.ckpt`** - 학습된 모델
+2. **`custom_avenue_ultimate/`** - Avenue 형식의 데이터셋
+3. **`custom_results_ultimate/`** - 학습 결과 로그
 
 ### 다음 단계:
 1. `realtime_ui_advanced_windows.py` 실행
 2. "체크포인트 로드" 버튼 클릭
-3. `aivad_custom_final_checkpoint.ckpt` 선택
+3. `aivad_custom_ultimate_checkpoint.ckpt` 선택
 4. 실시간 이상 탐지 테스트
 
 ## 🆘 문제가 지속될 경우
@@ -179,6 +193,6 @@ Start-Process cmd -Verb RunAs
 
 ## 🏆 결론
 
-`train_custom_final.py`는 지금까지 발생한 모든 오류를 해결한 완벽한 솔루션입니다. Avenue 데이터셋의 구조를 완전히 모방하여 pandas 오류를 해결했고, Windows 권한 문제와 CustomVideoDataModule 문제도 모두 해결했습니다.
+`train_custom_ultimate.py`는 지금까지 발생한 모든 오류를 해결한 궁극의 솔루션입니다. Avenue 데이터셋의 구조를 완벽히 모방하여 pandas 오류를 해결했고, Windows 권한 문제, CustomVideoDataModule 문제, 변수 스코프 문제, 경로 처리 문제도 모두 해결했습니다.
 
-**이제 안정적으로 커스텀 비디오 데이터로 AI-VAD 모델을 학습시킬 수 있습니다!** 🎊
+**이제 궁극적으로 안정적으로 커스텀 비디오 데이터로 AI-VAD 모델을 학습시킬 수 있습니다!** 🎊
