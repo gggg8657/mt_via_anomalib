@@ -1012,3 +1012,24 @@ Traceback (most recent call last):
   File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\conv.py", line 549, in _conv_forward
     return F.conv2d(
 RuntimeError: Input type (torch.FloatTensor) and weight type (torch.cuda.FloatTensor) should be the same or input should be a MKLDNN tensor and weight is a dense tensor
+
+--- ISSUE 2025.10.15 20:49 ---
+❌ 프레임 처리 오류: amax(): Expected reduction dim 0 to have non-zero size.
+Traceback (most recent call last):
+  File "C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib\realtime_ui_advanced_windows.py", line 692, in on_frame
+    overlay, score, info = self.inferencer.infer_on_frame(frame_bgr)
+  File "C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib\realtime_ui_advanced_windows.py", line 299, in infer_on_frame
+    output = self.core(batch)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\models\video\ai_vad\torch_model.py", line 210, in forward
+    [
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\models\video\ai_vad\torch_model.py", line 211, in <listcomp>
+    torch.amax(region["masks"] * scores.view(-1, 1, 1, 1), dim=0)
+IndexError: amax(): Expected reduction dim 0 to have non-zero size.
+🔍 입력 텐서 디바이스: t0=cuda:0, t1=cuda:0, batch=cuda:0
+🔍 Flow extractor 입력 디바이스: cuda:0
+🔍 Core 모델 디바이스: cuda:0
+
