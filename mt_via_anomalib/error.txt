@@ -1033,3 +1033,71 @@ IndexError: amax(): Expected reduction dim 0 to have non-zero size.
 🔍 Flow extractor 입력 디바이스: cuda:0
 🔍 Core 모델 디바이스: cuda:0
 
+--- ISSUE 2025.10.15 20:57 ---
+윈도우즈 GPU 사용: NVIDIA GeForce RTX 4090
+🔄 체크포인트 로드 시도: C:/Users/User/PycharmProjects/pythonProject1/mt_via_anomalib/mt_via_anomalib/aivad_ui_ready_checkpoint.ckpt
+체크포인트 키들: ['state_dict', 'pytorch-lightning_version', 'model_class']
+✅ state_dict 로드 성공
+✅ 체크포인트 로드 완료: C:/Users/User/PycharmProjects/pythonProject1/mt_via_anomalib/mt_via_anomalib/aivad_ui_ready_checkpoint.ckpt
+✅ 모델 디바이스: cuda:0
+✅ Core 모델 디바이스: cuda:0
+✅ 설정된 디바이스: cuda
+⚠️  모델이 cuda:0에 있지만 설정은 cuda
+✅ 모델 로드 확인됨
+
+❌ 모델 추론 실패: amax(): Expected reduction dim 0 to have non-zero size.
+❌ 프레임 처리 오류: 'DummyOutput' object has no attribute 'device'
+Traceback (most recent call last):
+  File "C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib\realtime_ui_advanced_windows.py", line 300, in infer_on_frame
+    output = self.core(batch)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\models\video\ai_vad\torch_model.py", line 210, in forward
+    [
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\models\video\ai_vad\torch_model.py", line 211, in <listcomp>
+    torch.amax(region["masks"] * scores.view(-1, 1, 1, 1), dim=0)
+IndexError: amax(): Expected reduction dim 0 to have non-zero size.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib\realtime_ui_advanced_windows.py", line 706, in on_frame
+    overlay, score, info = self.inferencer.infer_on_frame(frame_bgr)
+  File "C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib\realtime_ui_advanced_windows.py", line 309, in infer_on_frame
+    output = DummyOutput()
+  File "C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib\realtime_ui_advanced_windows.py", line 307, in __init__
+    self.pred_score = torch.tensor([0.5], device=self.device)
+AttributeError: 'DummyOutput' object has no attribute 'device'
+🔍 입력 텐서 디바이스: t0=cuda:0, t1=cuda:0, batch=cuda:0
+🔍 배치 크기: torch.Size([1, 2, 3, 720, 1280])
+❌ 모델 추론 실패: amax(): Expected reduction dim 0 to have non-zero size.
+❌ 프레임 처리 오류: 'DummyOutput' object has no attribute 'device'
+Traceback (most recent call last):
+  File "C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib\realtime_ui_advanced_windows.py", line 300, in infer_on_frame
+    output = self.core(batch)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\models\video\ai_vad\torch_model.py", line 210, in forward
+    [
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\models\video\ai_vad\torch_model.py", line 211, in <listcomp>
+    torch.amax(region["masks"] * scores.view(-1, 1, 1, 1), dim=0)
+IndexError: amax(): Expected reduction dim 0 to have non-zero size.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib\realtime_ui_advanced_windows.py", line 706, in on_frame
+    overlay, score, info = self.inferencer.infer_on_frame(frame_bgr)
+  File "C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib\realtime_ui_advanced_windows.py", line 309, in infer_on_frame
+    output = DummyOutput()
+  File "C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib\realtime_ui_advanced_windows.py", line 307, in __init__
+    self.pred_score = torch.tensor([0.5], device=self.device)
+AttributeError: 'DummyOutput' object has no attribute 'device'
+🔍 입력 텐서 디바이스: t0=cuda:0, t1=cuda:0, batch=cuda:0
+🔍 배치 크기: torch.Size([1, 2, 3, 720, 1280])
+❌ 모델 추론 실패: amax(): Expected reduction dim 0 to have non-zero size.
+❌ 프레임 처리 오류: 'DummyOutput' object has no attribute 'device'
