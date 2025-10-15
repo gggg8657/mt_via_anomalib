@@ -1,0 +1,212 @@
+import argparse
+import json
+import os
+from collections import defaultdict
+from typing import Dict, List, Any, Tuple, Optional
+
+import cv2
+
+
+def _normalize_path(path: str, base_root: Optional[str]) -> str:
+    if os.path.isabs(path):
+        return path
+    if base_root:
+        return os.path.normpath(os.path.join(base_root, path))
+    return os.path.normpath(path)
+
+
+def _flatten(list_of_lists: List[List[str]]) -> List[str]:
+    return [item for sub in list_of_lists for item in sub]
+
+
+def _ensure_existing(paths: List[str]) -> List[str]:
+    return [p for p in paths if os.path.isfile(p)]
+
+
+def _detect_frame_size(first_image_path: str) -> Tuple[int, int]:
+    img = cv2.imread(first_image_path)
+    if img is None:
+        raise FileNotFoundError(f"이미지를 읽을 수 없습니다: {first_image_path}")
+    h, w = img.shape[:2]
+    return w, h
+
+
+def _write_videos_for_category(
+    category: str,
+    image_paths: List[str],
+    output_dir: str,
+    fps: int,
+    chunk_size: int,
+    fourcc_str: str,
+    resize_to: Optional[Tuple[int, int]] = None,
+) -> List[str]:
+    written_files: List[str] = []
+    if not image_paths:
+        return written_files
+
+    os.makedirs(output_dir, exist_ok=True)
+
+    # 결정적 프레임 크기
+    if resize_to is None:
+        frame_size = _detect_frame_size(image_paths[0])  # (w, h)
+    else:
+        frame_size = resize_to
+
+    fourcc = cv2.VideoWriter_fourcc(*fourcc_str)
+
+    # 청크 단위로 분할하여 normal_0, normal_1 ... 형식으로 저장
+    num_chunks = (len(image_paths) + chunk_size - 1) // chunk_size
+    for chunk_idx in range(num_chunks):
+        start = chunk_idx * chunk_size
+        end = min((chunk_idx + 1) * chunk_size, len(image_paths))
+        chunk_images = image_paths[start:end]
+
+        out_name = f"{category}_{chunk_idx}.avi"
+        out_path = os.path.join(output_dir, out_name)
+
+        writer = cv2.VideoWriter(out_path, fourcc, fps, frame_size)
+        if not writer.isOpened():
+            raise RuntimeError(f"비디오 파일을 열 수 없습니다: {out_path}")
+
+        for img_path in chunk_images:
+            img = cv2.imread(img_path)
+            if img is None:
+                # 손상/누락 프레임은 건너뛰기
+                continue
+            if (img.shape[1], img.shape[0]) != frame_size:
+                img = cv2.resize(img, frame_size, interpolation=cv2.INTER_AREA)
+            writer.write(img)
+
+        writer.release()
+        written_files.append(out_path)
+
+    return written_files
+
+
+def _extract_category_to_images(data: Any, base_root: Optional[str]) -> Dict[str, List[str]]:
+    """
+    image_segments.json의 다양한 스키마를 너그럽게 지원하는 추출기.
+
+    지원 형태 예시:
+    1) [{"category": "normal", "images": ["a.jpg", "b.jpg"]}, ...]
+    2) [{"category": "normal", "paths": [...]}, ...] 또는 "frames" 키
+    3) {"normal": ["a.jpg", "b.jpg"], "abnormal": ["..."]}
+    4) [{"category": "normal", "items": [{"path": "a.jpg"}, {"path": "b.jpg"}]}]
+    5) 각 항목이 단일 이미지 레코드: [{"category": "normal", "path": "a.jpg"}, ...]
+    """
+
+    category_to_lists: Dict[str, List[List[str]]] = defaultdict(list)
+
+    def normalize_list(paths: List[str]) -> List[str]:
+        return [_normalize_path(p, base_root) for p in paths]
+
+    if isinstance(data, dict):
+        # 형태 3) 가정: 카테고리 키 -> 이미지 경로 리스트
+        for cat, paths in data.items():
+            if isinstance(paths, list) and paths and isinstance(paths[0], str):
+                category_to_lists[cat].append(normalize_list(paths))
+            elif isinstance(paths, list) and paths and isinstance(paths[0], dict):
+                # 하위 dict에서 path 키 추출
+                extracted = [item.get("path") for item in paths if isinstance(item, dict) and item.get("path")]
+                category_to_lists[cat].append(normalize_list(extracted))
+        return {k: _ensure_existing(_flatten(v)) for k, v in category_to_lists.items()}
+
+    if isinstance(data, list):
+        # 리스트 항목 형태별 처리
+        for item in data:
+            if not isinstance(item, dict):
+                continue
+            cat = item.get("category") or item.get("label") or item.get("class")
+
+            # 1) images/paths/frames 키 우선
+            for key in ("images", "paths", "frames"):
+                if key in item and isinstance(item[key], list) and (not item[key] or isinstance(item[key][0], str)):
+                    if cat:
+                        category_to_lists[cat].append(normalize_list(item[key]))
+                    break
+            else:
+                # 4) items: [{path: ...}, ...]
+                if "items" in item and isinstance(item["items"], list):
+                    extracted = [sub.get("path") for sub in item["items"] if isinstance(sub, dict) and sub.get("path")]
+                    if extracted and cat:
+                        category_to_lists[cat].append(normalize_list(extracted))
+                    continue
+
+                # 5) 단일 이미지 레코드
+                if "path" in item and isinstance(item["path"], str) and cat:
+                    category_to_lists[cat].append(normalize_list([item["path"]]))
+
+        return {k: _ensure_existing(_flatten(v)) for k, v in category_to_lists.items()}
+
+    raise ValueError("지원되지 않는 JSON 구조입니다. dict 또는 list 형태여야 합니다.")
+
+
+def make_videos(
+    json_path: str,
+    output_dir: str,
+    base_image_root: Optional[str] = None,
+    fps: int = 25,
+    max_frames_per_video: int = 1000,
+    fourcc: str = "XVID",
+    resize_width: Optional[int] = None,
+    resize_height: Optional[int] = None,
+) -> Dict[str, List[str]]:
+    with open(json_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    category_to_images = _extract_category_to_images(data, base_image_root)
+
+    # 프레임 크기 강제 지정 여부
+    resize_to = None
+    if resize_width is not None and resize_height is not None:
+        resize_to = (resize_width, resize_height)
+
+    results: Dict[str, List[str]] = {}
+    for category, images in category_to_images.items():
+        if not images:
+            continue
+        written = _write_videos_for_category(
+            category=category,
+            image_paths=images,
+            output_dir=output_dir,
+            fps=fps,
+            chunk_size=max_frames_per_video,
+            fourcc_str=fourcc,
+            resize_to=resize_to,
+        )
+        results[category] = written
+
+    return results
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="image_segments.json 기반 카테고리별 영상 생성기")
+    parser.add_argument("--json", required=True, help="image_segments.json 경로")
+    parser.add_argument("--out", required=True, help="출력 비디오 디렉터리")
+    parser.add_argument("--base", default=None, help="이미지 루트 디렉터리 (상대경로를 이 루트에 결합)")
+    parser.add_argument("--fps", type=int, default=25, help="프레임레이트")
+    parser.add_argument("--chunk", type=int, default=1000, help="비디오당 최대 프레임 수 (청크 분할)")
+    parser.add_argument("--fourcc", default="XVID", help="코덱 FourCC (예: XVID, mp4v)")
+    parser.add_argument("--width", type=int, default=None, help="강제 리사이즈 가로")
+    parser.add_argument("--height", type=int, default=None, help="강제 리사이즈 세로")
+    return parser.parse_args()
+
+
+if __name__ == "__main__":
+    args = parse_args()
+    outputs = make_videos(
+        json_path=args.json,
+        output_dir=args.out,
+        base_image_root=args.base,
+        fps=args.fps,
+        max_frames_per_video=args.chunk,
+        fourcc=args.fourcc,
+        resize_width=args.width,
+        resize_height=args.height,
+    )
+    for cat, files in outputs.items():
+        print(f"[{cat}] 생성 파일:")
+        for fp in files:
+            print(f"  - {fp}")
+
+
