@@ -6,9 +6,28 @@
 # 비디오 파일 경로 리스트
 video_files = [
     # 사용자 지정 경로 (Windows):
-    "C:\\Users\\User\\Documents\\repos\\VAD\\CV_module_test_tmp\\STEAD\\videos\\normal_video.mp4",
-    "C:\\Users\\User\\Documents\\repos\\VAD\\CV_module_test_tmp\\STEAD\\videos\\unknown_video.mp4",
-    
+    #"C:\\Users\\User\\Documents\\repos\\VAD\\CV_module_test_tmp\\STEAD\\videos\\normal_video.mp4",
+    #"C:\\Users\\User\\Documents\\repos\\VAD\\CV_module_test_tmp\\STEAD\\videos\\unknown_video.mp4",
+    "C:\\Users\\User\PycharmProjects\pythonProject1\Accurate-Interpretable-VAD\data\my_camera\\training_videos\\normal_0.avi",
+    "C:\\Users\\User\PycharmProjects\pythonProject1\Accurate-Interpretable-VAD\data\my_camera\\training_videos\\normal_1.avi",
+    "C:\\Users\\User\PycharmProjects\pythonProject1\Accurate-Interpretable-VAD\data\my_camera\\training_videos\\normal_2.avi",
+    "C:\\Users\\User\PycharmProjects\pythonProject1\Accurate-Interpretable-VAD\data\my_camera\\training_videos\\normal_3.avi",
+    "C:\\Users\\User\PycharmProjects\pythonProject1\Accurate-Interpretable-VAD\data\my_camera\\training_videos\\normal_4.avi",
+    "C:\\Users\\User\PycharmProjects\pythonProject1\Accurate-Interpretable-VAD\data\my_camera\\training_videos\\normal_5.avi",
+    "C:\\Users\\User\PycharmProjects\pythonProject1\Accurate-Interpretable-VAD\data\my_camera\\training_videos\\normal_6.avi",
+    "C:\\Users\\User\PycharmProjects\pythonProject1\Accurate-Interpretable-VAD\data\my_camera\\training_videos\\normal_7.avi",
+    "C:\\Users\\User\PycharmProjects\pythonProject1\Accurate-Interpretable-VAD\data\my_camera\\training_videos\\normal_8.avi",
+    "C:\\Users\\User\PycharmProjects\pythonProject1\Accurate-Interpretable-VAD\data\my_camera\\training_videos\\normal_9.avi",
+    "C:\\Users\\User\PycharmProjects\pythonProject1\Accurate-Interpretable-VAD\data\my_camera\\training_videos\\normal_10.avi",
+    "C:\\Users\\User\PycharmProjects\pythonProject1\Accurate-Interpretable-VAD\data\my_camera\\training_videos\\normal_11.avi",
+    "C:\\Users\\User\PycharmProjects\pythonProject1\Accurate-Interpretable-VAD\data\my_camera\\training_videos\\normal_12.avi",
+    "C:\\Users\\User\PycharmProjects\pythonProject1\Accurate-Interpretable-VAD\data\my_camera\\training_videos\\normal_13.avi",
+    "C:\\Users\\User\PycharmProjects\pythonProject1\Accurate-Interpretable-VAD\data\my_camera\\training_videos\\normal_14.avi",
+    "C:\\Users\\User\PycharmProjects\pythonProject1\Accurate-Interpretable-VAD\data\my_camera\\training_videos\\normal_15.avi",
+    "C:\\Users\\User\PycharmProjects\pythonProject1\Accurate-Interpretable-VAD\data\my_camera\\training_videos\\normal_16.avi",
+    "C:\\Users\\User\PycharmProjects\pythonProject1\Accurate-Interpretable-VAD\data\my_camera\\training_videos\\normal_17.avi",
+    "C:\\Users\\User\PycharmProjects\pythonProject1\Accurate-Interpretable-VAD\data\my_camera\\training_videos\\normal_18.avi",
+    "C:\\Users\\User\PycharmProjects\pythonProject1\Accurate-Interpretable-VAD\data\my_camera\\training_videos\\normal_19.avi"
     # 추가 비디오 파일들을 여기에 추가하세요:
     # "C:\\Users\\YourName\\Videos\\normal_video1.mp4",
     # "C:\\Users\\YourName\\Videos\\normal_video2.avi",

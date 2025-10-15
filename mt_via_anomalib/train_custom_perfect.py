@@ -71,7 +71,7 @@ def create_perfect_avenue_structure(dataset_path: str, video_files: list):
             print(f"⚠️  기존 데이터셋 정리 중 오류: {e}")
     
     # Avenue 형식의 완전한 디렉토리 구조 생성
-    train_path = dataset_path / "training_videos"
+    train_path = dataset_path / "tmp"
     test_path = dataset_path / "testing_videos"
     gt_path = dataset_path / "ground_truth_demo" / "testing_label_mask"
     
@@ -83,7 +83,7 @@ def create_perfect_avenue_structure(dataset_path: str, video_files: list):
     successful_files = 0
     video_frame_counts = {}
     
-    # 비디오 파일들을 training_videos 디렉토리로 복사
+    # 비디오 파일들을 tmp 디렉토리로 복사
     for i, video_file in enumerate(video_files):
         if not os.path.exists(video_file):
             print(f"⚠️  비디오 파일을 찾을 수 없습니다: {video_file}")
@@ -187,7 +187,7 @@ def main():
         
         # 샘플 디렉토리 구조 생성
         dataset_path = pathlib.Path(dataset_path)
-        train_path = dataset_path / "training_videos"
+        train_path = dataset_path / "tmp"
         train_path.mkdir(parents=True, exist_ok=True)
         
         # README 파일 생성
@@ -217,7 +217,7 @@ python train_custom_perfect.py
 - 모든 알려진 오류 완전 해결 (Windows 권한, CustomVideoDataModule, pandas DataFrame, 변수 스코프, 경로 처리, IndexError)
 - 비디오 프레임 수 기반 ground truth 생성
 - Avenue 데이터셋의 실제 구조 완벽 모방
-- training_videos, testing_videos, ground_truth_demo 완전 구현
+- tmp, testing_videos, ground_truth_demo 완전 구현
 - Windows 경로 처리 최적화
 - 최고 수준의 안정성과 호환성
 

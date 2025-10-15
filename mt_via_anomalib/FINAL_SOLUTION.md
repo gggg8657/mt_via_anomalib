@@ -116,7 +116,7 @@ run_windows_ultimate.bat
 ### pandas 오류 원인 분석
 ```python
 # 오류 발생 코드 (anomalib 내부)
-samples.loc[samples.folder == "training_videos", "split"] = "train"
+samples.loc[samples.folder == "tmp", "split"] = "train"
 ```
 
 **문제**: `samples` DataFrame이 비어있거나 인덱스가 정의되지 않음
