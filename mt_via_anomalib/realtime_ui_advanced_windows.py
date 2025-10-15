@@ -277,7 +277,24 @@ class MainWindow(QtWidgets.QMainWindow):
     def __init__(self) -> None:
         super().__init__()
         self.setWindowTitle("AI-VAD Advanced Realtime Anomaly Detection (Windows)")
-        self.resize(1400, 900)
+        # 윈도우즈 화면 크기에 맞게 조정
+        screen = QtWidgets.QApplication.primaryScreen()
+        screen_geometry = screen.availableGeometry()
+        
+        # 화면의 80% 크기로 설정 (최대 1200x800)
+        window_width = min(1200, int(screen_geometry.width() * 0.8))
+        window_height = min(800, int(screen_geometry.height() * 0.8))
+        
+        self.resize(window_width, window_height)
+        
+        # 최소/최대 크기 설정
+        self.setMinimumSize(800, 600)
+        self.setMaximumSize(1600, 1200)
+        
+        # 윈도우를 화면 중앙에 위치
+        x = (screen_geometry.width() - window_width) // 2
+        y = (screen_geometry.height() - window_height) // 2
+        self.move(x, y)
 
         # 윈도우즈 스타일 설정
         if platform.system() == "Windows":
@@ -334,11 +351,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setCentralWidget(central)
         layout = QtWidgets.QVBoxLayout(central)
 
-        # 상단 컨트롤 바
+        # 상단 컨트롤 바 (크기 제한)
         controls = QtWidgets.QHBoxLayout()
+        controls.setContentsMargins(5, 5, 5, 5)
         
-        # 입력 소스 선택
+        # 입력 소스 선택 (크기 제한)
         source_group = QtWidgets.QGroupBox("입력 소스")
+        source_group.setMaximumWidth(150)
         source_layout = QtWidgets.QVBoxLayout()
         self.btn_open_video = QtWidgets.QPushButton("영상 파일")
         self.btn_open_camera = QtWidgets.QPushButton("웹캠")
@@ -347,16 +366,18 @@ class MainWindow(QtWidgets.QMainWindow):
         source_group.setLayout(source_layout)
         controls.addWidget(source_group)
 
-        # 모델 로드
+        # 모델 로드 (크기 제한)
         model_group = QtWidgets.QGroupBox("모델")
+        model_group.setMaximumWidth(150)
         model_layout = QtWidgets.QVBoxLayout()
         self.btn_ckpt = QtWidgets.QPushButton("체크포인트 로드")
         model_layout.addWidget(self.btn_ckpt)
         model_group.setLayout(model_layout)
         controls.addWidget(model_group)
 
-        # 재생 컨트롤
+        # 재생 컨트롤 (크기 제한)
         play_group = QtWidgets.QGroupBox("재생 컨트롤")
+        play_group.setMaximumWidth(200)
         play_layout = QtWidgets.QHBoxLayout()
         self.btn_play = QtWidgets.QPushButton("재생")
         self.btn_pause = QtWidgets.QPushButton("일시정지")
@@ -367,8 +388,9 @@ class MainWindow(QtWidgets.QMainWindow):
         play_group.setLayout(play_layout)
         controls.addWidget(play_group)
 
-        # 임계치 설정
+        # 임계치 설정 (크기 제한)
         threshold_group = QtWidgets.QGroupBox("임계치 설정")
+        threshold_group.setMaximumWidth(250)
         threshold_layout = QtWidgets.QVBoxLayout()
         
         self.adaptive_checkbox = QtWidgets.QCheckBox("적응 임계치 사용")
@@ -613,8 +635,14 @@ class MainWindow(QtWidgets.QMainWindow):
         rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
         qimg = QtGui.QImage(rgb.data, w, h, 3 * w, QtGui.QImage.Format.Format_RGB888)
         pixmap = QtGui.QPixmap.fromImage(qimg)
+        
+        # 비디오 크기를 적절하게 제한 (최대 800x600)
+        label_size = self.video_label.size()
+        max_width = min(800, label_size.width())
+        max_height = min(600, label_size.height())
+        
         pixmap = pixmap.scaled(
-            self.video_label.size(), 
+            max_width, max_height,
             QtCore.Qt.AspectRatioMode.KeepAspectRatio, 
             QtCore.Qt.TransformationMode.SmoothTransformation
         )
@@ -622,9 +650,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def resizeEvent(self, event: QtGui.QResizeEvent) -> None:
         if self.video_label.pixmap():
+            # 비디오 크기를 적절하게 제한
+            label_size = self.video_label.size()
+            max_width = min(800, label_size.width())
+            max_height = min(600, label_size.height())
+            
             self.video_label.setPixmap(
                 self.video_label.pixmap().scaled(
-                    self.video_label.size(), 
+                    max_width, max_height,
                     QtCore.Qt.AspectRatioMode.KeepAspectRatio, 
                     QtCore.Qt.TransformationMode.SmoothTransformation
                 )
