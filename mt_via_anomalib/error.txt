@@ -863,3 +863,37 @@ Traceback (most recent call last):
 AttributeError: module 'pytorch_lightning' has no attribute 'save_checkpoint'
 
 💥 체크포인트 생성 실패
+
+
+--- ISSUE 2025.10.15. 20:07 ---
+(mt_p310) C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib>python create_ui_checkpoint.py
+🔧 GPU 설정 중...
+✅ GPU 사용: NVIDIA GeForce RTX 4090
+============================================================
+🏆 UI 호환 체크포인트 생성
+============================================================
+🤖 AI-VAD 모델 초기화...
+📊 PyTorch Lightning 버전: 2.5.5
+✅ 모델을 GPU로 이동 완료
+💾 UI 호환 체크포인트 저장: aivad_ui_compatible_checkpoint.ckpt
+📊 체크포인트 크기: 757.9 MB
+🔍 체크포인트 내용 확인:
+❌ 체크포인트 생성 실패: Weights only load failed. This file can still be loaded, to do so you have two options, do those steps only if you trust the source of the checkpoint.
+        (1) In PyTorch 2.6, we changed the default value of the `weights_only` argument in `torch.load` from `False` to `True`. Re-running `torch.load` with `weights_only` set to `False` will likely succeed, but it can result in arbitrary code execution. Do it only if you got the file from a trusted source.
+        (2) Alternatively, to load with `weights_only=True` please check the recommended steps in the following error message.
+        WeightsUnpickler error: Unsupported global: GLOBAL lightning.fabric.utilities.data.AttributeDict was not an allowed global by default. Please use `torch.serialization.add_safe_globals([lightning.fabric.utilities.data.AttributeDict])` or the `torch.serialization.safe_globals([lightning.fabric.utilities.data.AttributeDict])` context manager to allowlist this global if you trust this class/function.
+
+Check the documentation of torch.load to learn more about types accepted by default with weights_only https://pytorch.org/docs/stable/generated/torch.load.html.
+Traceback (most recent call last):
+  File "C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib\create_ui_checkpoint.py", line 59, in create_ui_compatible_checkpoint
+    loaded_checkpoint = torch.load(checkpoint_path, map_location='cpu')
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\serialization.py", line 1524, in load
+    raise pickle.UnpicklingError(_get_wo_message(str(e))) from None
+_pickle.UnpicklingError: Weights only load failed. This file can still be loaded, to do so you have two options, do those steps only if you trust the source of the checkpoint.
+        (1) In PyTorch 2.6, we changed the default value of the `weights_only` argument in `torch.load` from `False` to `True`. Re-running `torch.load` with `weights_only` set to `False` will likely succeed, but it can result in arbitrary code execution. Do it only if you got the file from a trusted source.
+        (2) Alternatively, to load with `weights_only=True` please check the recommended steps in the following error message.
+        WeightsUnpickler error: Unsupported global: GLOBAL lightning.fabric.utilities.data.AttributeDict was not an allowed global by default. Please use `torch.serialization.add_safe_globals([lightning.fabric.utilities.data.AttributeDict])` or the `torch.serialization.safe_globals([lightning.fabric.utilities.data.AttributeDict])` context manager to allowlist this global if you trust this class/function.
+
+Check the documentation of torch.load to learn more about types accepted by default with weights_only https://pytorch.org/docs/stable/generated/torch.load.html.
+
+💥 체크포인트 생성 실패
