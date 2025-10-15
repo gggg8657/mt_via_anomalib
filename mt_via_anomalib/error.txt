@@ -713,3 +713,60 @@ Traceback (most recent call last):
 RuntimeError: The size of tensor a (4) must match the size of tensor b (3) at non-singleton dimension 0
 
 💥 학습에 실패했습니다.
+
+--- ISSUE : ---
+(mt_p310) C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib>python train_aivad_working.py
+🔧 GPU 및 cuDNN 설정 최적화 중...
+✅ GPU 사용 가능: NVIDIA GeForce RTX 4090
+✅ GPU 메모리: 24.0 GB
+============================================================
+🏆 작동하는 AI-VAD 모델 학습 (Tensor 크기 문제 해결)
+============================================================
+🚀 작동하는 AI-VAD 모델 학습 시작...
+🎯 사용 디바이스: cuda
+📊 GPU 메모리 사용량: 0.000 GB (할당됨), 0.000 GB (캐시됨)
+🤖 AI-VAD 모델 초기화...
+✅ 모델 초기화 완료
+✅ 모델을 GPU로 이동 완료
+📊 모델 로드 후 GPU 메모리: 0.755 GB (할당됨), 0.766 GB (캐시됨)
+
+🔍 모델 컴포넌트 테스트...
+🔍 모델 컴포넌트별 테스트 중...
+🔍 Flow extractor 테스트...
+✅ Flow extractor 성공: torch.Size([1, 2, 224, 224])
+
+🧪 모델 forward pass 테스트...
+🧪 모델 forward pass 테스트 중...
+📊 AI-VAD용 정확한 비디오 배치 생성 중...
+✅ 비디오 배치 생성 완료: torch.Size([2, 2, 3, 224, 224])
+   - 배치 크기: 2
+   - 프레임 수: 2
+   - 채널 수: 3 (RGB)
+   - 해상도: 224x224
+✅ 비디오 배치를 GPU로 이동 완료
+❌ Forward pass 실패: 'list' object has no attribute 'pred_score'
+Traceback (most recent call last):
+  File "C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib\train_aivad_working.py", line 70, in test_model_forward_pass
+    output = model(video_batch)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\models\components\base\anomalib_module.py", line 201, in forward
+    return self.post_processor(batch) if self.post_processor else batch
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\post_processing\post_processor.py", line 210, in forward
+    if predictions.pred_score is None and predictions.anomaly_map is None:
+AttributeError: 'list' object has no attribute 'pred_score'
+
+❌ 일부 테스트 실패
+
+💥 모델 테스트에 실패했습니다.
+
+📋 해결 방법:
+1. GPU 드라이버 및 CUDA 설치 확인
+2. PyTorch GPU 버전 설치 확인
+3. 관리자 권한으로 실행
