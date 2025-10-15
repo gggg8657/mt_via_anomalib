@@ -61,9 +61,81 @@ class CustomVideoDataModule:
         return self._create_dummy_dataloader()
     
     def _create_dummy_dataloader(self):
-        """더미 데이터 로더 생성"""
-        # 실제 비디오 데이터 로더 구현 필요
-        return None
+        """실제 비디오 데이터 로더 생성"""
+        from torch.utils.data import DataLoader, Dataset
+        
+        class VideoDataset(Dataset):
+            def __init__(self, video_paths, video_info, clip_length=2):
+                self.video_paths = video_paths
+                self.video_info = video_info
+                self.clip_length = clip_length
+                self.clips = self._generate_clips()
+                
+            def _generate_clips(self):
+                """비디오에서 클립 생성"""
+                clips = []
+                for video_path in self.video_paths:
+                    if video_path in self.video_info:
+                        frame_count = self.video_info[video_path]
+                        # 연속된 프레임으로 클립 생성
+                        for start_frame in range(0, frame_count - self.clip_length, 10):  # 10프레임 간격
+                            clips.append({
+                                'video_path': video_path,
+                                'start_frame': start_frame,
+                                'end_frame': start_frame + self.clip_length - 1
+                            })
+                return clips
+            
+            def __len__(self):
+                return len(self.clips)
+            
+            def __getitem__(self, idx):
+                clip = self.clips[idx]
+                video_path = clip['video_path']
+                start_frame = clip['start_frame']
+                
+                # 비디오에서 프레임 로드
+                cap = cv2.VideoCapture(video_path)
+                frames = []
+                
+                for frame_idx in range(start_frame, start_frame + self.clip_length):
+                    cap.set(cv2.CAP_PROP_POS_FRAMES, frame_idx)
+                    ret, frame = cap.read()
+                    
+                    if ret:
+                        # 프레임 전처리
+                        frame = cv2.resize(frame, (224, 224))  # AI-VAD 입력 크기
+                        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                        frame = frame.astype(np.float32) / 255.0  # 정규화
+                        frames.append(frame)
+                    else:
+                        # 실패한 경우 검은 프레임
+                        frames.append(np.zeros((224, 224, 3), dtype=np.float32))
+                
+                cap.release()
+                
+                # 텐서로 변환 [T, H, W, C] -> [T, C, H, W]
+                clip_tensor = torch.from_numpy(np.array(frames)).permute(0, 3, 1, 2)
+                
+                return {
+                    'video': clip_tensor,
+                    'label': 0  # 정상 데이터
+                }
+        
+        # 데이터셋 생성
+        dataset = VideoDataset(self.video_paths, self.video_info, self.clip_length)
+        
+        # 데이터 로더 생성
+        dataloader = DataLoader(
+            dataset,
+            batch_size=2,  # 작은 배치 크기
+            shuffle=True,
+            num_workers=0,  # Windows 호환성
+            pin_memory=True,
+            drop_last=True
+        )
+        
+        return dataloader
 
 def load_pretrained_model(checkpoint_path="aivad_proper_checkpoint.ckpt"):
     """사전 훈련된 모델 로드"""
@@ -176,24 +248,9 @@ def main():
     # 학습 시작
     print("\n🎯 파인튜닝 시작!")
     try:
-        # 실제 데이터 로더가 구현되면 이 부분 활성화
-        # engine.fit(model=model, datamodule=datamodule)
-        
-        print("⚠️ 실제 데이터 로더 구현 필요")
-        print("현재는 더미 모드로 실행됩니다.")
-        
-        # 더미 학습 (실제 구현에서는 제거)
-        print("🔧 더미 학습 실행...")
-        model.train()
-        
-        # 더미 입력 생성
-        dummy_input = torch.randn(1, 2, 3, 224, 224).to(device)
-        
-        # Forward pass
-        with torch.no_grad():
-            output = model(dummy_input)
-            print(f"✅ 모델 forward pass 성공")
-            print(f"출력 타입: {type(output)}")
+        # 실제 데이터 로더로 학습 실행
+        print("📊 실제 비디오 데이터로 파인튜닝 시작...")
+        engine.fit(model=model, datamodule=datamodule)
         
         # 체크포인트 저장
         checkpoint_path = "aivad_finetuned.ckpt"
