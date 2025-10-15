@@ -22,6 +22,9 @@ def create_ui_compatible_checkpoint():
     """UI 호환 체크포인트 생성"""
     print("🤖 AI-VAD 모델 초기화...")
     
+    # PyTorch Lightning 버전 확인
+    print(f"📊 PyTorch Lightning 버전: {pl.__version__}")
+    
     try:
         # 모델 초기화
         model = AiVad()
@@ -34,8 +37,15 @@ def create_ui_compatible_checkpoint():
         # Lightning 체크포인트 형식으로 저장
         checkpoint_path = "aivad_ui_compatible_checkpoint.ckpt"
         
-        # Lightning 모델을 체크포인트로 저장
-        pl.save_checkpoint(model, checkpoint_path)
+        # Lightning 체크포인트 형식으로 수동 저장
+        checkpoint = {
+            'state_dict': model.state_dict(),
+            'pytorch-lightning_version': pl.__version__,
+            'model_class': model.__class__.__name__,
+            'hyper_parameters': getattr(model, 'hparams', {}),
+        }
+        
+        torch.save(checkpoint, checkpoint_path)
         
         print(f"💾 UI 호환 체크포인트 저장: {checkpoint_path}")
         
@@ -43,6 +53,12 @@ def create_ui_compatible_checkpoint():
         if os.path.exists(checkpoint_path):
             size_mb = os.path.getsize(checkpoint_path) / 1024 / 1024
             print(f"📊 체크포인트 크기: {size_mb:.1f} MB")
+        
+        # 체크포인트 내용 확인
+        print("🔍 체크포인트 내용 확인:")
+        loaded_checkpoint = torch.load(checkpoint_path, map_location='cpu')
+        for key in loaded_checkpoint.keys():
+            print(f"   - {key}: {type(loaded_checkpoint[key])}")
         
         return True
         
