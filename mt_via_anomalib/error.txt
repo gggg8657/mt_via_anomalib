@@ -2661,53 +2661,96 @@ AiVad(
 3. CLIP 등의 컴포넌트 포함 여부 확인
 
 --- ISSUE 2025.10.15. 21:52 ---
+(mt_p310) C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib>python train_aivad_finetune.py
+🚀 AI-VAD 모델 파인튜닝 시작
+==================================================
+🖥️ 사용 디바이스: cuda
+GPU: NVIDIA GeForce RTX 4090
+GPU 메모리: 24.0 GB
+📁 훈련할 비디오 파일: 56개
+  1. normal_0.avi
+  2. normal_1.avi
+  3. normal_2.avi
+  ... 외 53개
 
-❌ 파인튜닝 중 오류: Input type (torch.cuda.FloatTensor) and weight type (torch.FloatTensor) should be the same
+📊 데이터 모듈 설정...
+📁 비디오 파일 56개 로드 중...
+  - normal_0.avi: 1802 frames
+  - normal_1.avi: 1674 frames
+  - normal_2.avi: 273 frames
+  - normal_3.avi: 198 frames
+  - normal_4.avi: 802 frames
+  - normal_5.avi: 2094 frames
+  - normal_6.avi: 527 frames
+  - normal_7.avi: 511 frames
+  - normal_8.avi: 122 frames
+  - normal_9.avi: 1485 frames
+  - normal_10.avi: 769 frames
+  - normal_11.avi: 984 frames
+  - normal_12.avi: 845 frames
+  - normal_13.avi: 72 frames
+  - normal_14.avi: 408 frames
+  - normal_15.avi: 82 frames
+  - normal_16.avi: 491 frames
+  - normal_17.avi: 440 frames
+  - normal_18.avi: 484 frames
+  - normal_19.avi: 324 frames
+  - normal_20.avi: 672 frames
+  - normal_21.avi: 2460 frames
+  - normal_22.avi: 1959 frames
+  - rest_0.avi: 214 frames
+  - rest_1.avi: 57 frames
+  - rest_2.avi: 19 frames
+  - rest_3.avi: 76 frames
+  - rest_4.avi: 24 frames
+  - rest_5.avi: 145 frames
+  - rest_6.avi: 42 frames
+  - rest_7.avi: 777 frames
+  - rest_8.avi: 80 frames
+  - rest_9.avi: 247 frames
+  - rest_10.avi: 212 frames
+  - rest_11.avi: 260 frames
+  - rest_12.avi: 210 frames
+  - rest_13.avi: 81 frames
+  - rest_14.avi: 226 frames
+  - rest_15.avi: 193 frames
+  - rest_16.avi: 223 frames
+  - rest_17.avi: 202 frames
+  - rest_18.avi: 10 frames
+  - rest_19.avi: 120 frames
+  - rest_20.avi: 139 frames
+  - rest_21.avi: 279 frames
+  - rest_22.avi: 145 frames
+  - rest_23.avi: 136 frames
+  - rest_24.avi: 96 frames
+  - rest_25.avi: 185 frames
+  - rest_26.avi: 474 frames
+  - rest_27.avi: 358 frames
+  - rest_28.avi: 201 frames
+  - rest_29.avi: 106 frames
+  - rest_30.avi: 78 frames
+  - rest_31.avi: 203 frames
+  - rest_32.avi: 438 frames
+✅ 총 25734 프레임 로드 완료
+
+🤖 사전 훈련된 모델 로드...
+🔄 사전 훈련된 모델 로드: aivad_proper_checkpoint.ckpt
+INFO:anomalib.models.components.base.anomalib_module:Initializing AiVad model.
+✅ 사전 훈련된 가중치 로드 완료
+
+⚙️ 파인튜닝 설정...
+⚙️ 파인튜닝 옵티마이저 설정 (LR: 1e-05)
+
+🔧 학습 엔진 설정...
+
+🎯 파인튜닝 시작!
+📊 실제 비디오 데이터로 파인튜닝 시작...
+❌ 파인튜닝 중 오류: 'CustomVideoDataModule' object has no attribute 'name'
 Traceback (most recent call last):
-  File "C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib\train_aivad_finetune.py", line 194, in main
-    output = model(dummy_input)
-  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1751, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1762, in _call_impl
-    return forward_call(*args, **kwargs)
-  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\models\components\base\anomalib_module.py", line 200, in forward
-    batch = self.model(batch)
-  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1751, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1762, in _call_impl
-    return forward_call(*args, **kwargs)
-  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\models\video\ai_vad\torch_model.py", line 192, in forward
-    flows = self.flow_extractor(first_frame, last_frame)
-  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1751, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1762, in _call_impl
-    return forward_call(*args, **kwargs)
-  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\models\video\ai_vad\flow.py", line 75, in forward
-    flows = self.model(first_frame, last_frame)[-1]
-  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1751, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1762, in _call_impl
-    return forward_call(*args, **kwargs)
-  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torchvision\models\optical_flow\raft.py", line 492, in forward
-    fmaps = self.feature_encoder(torch.cat([image1, image2], dim=0))
-  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1751, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1762, in _call_impl
-    return forward_call(*args, **kwargs)
-  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torchvision\models\optical_flow\raft.py", line 160, in forward
-    x = self.convnormrelu(x)
-  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1751, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1762, in _call_impl
-    return forward_call(*args, **kwargs)
-  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\container.py", line 240, in forward
-    input = module(input)
-  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1751, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1762, in _call_impl
-    return forward_call(*args, **kwargs)
-  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\conv.py", line 554, in forward
-    return self._conv_forward(input, self.weight, self.bias)
-  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\conv.py", line 549, in _conv_forward
-    return F.conv2d(
-RuntimeError: Input type (torch.cuda.FloatTensor) and weight type (torch.FloatTensor) should be the same
+  File "C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib\train_aivad_finetune.py", line 253, in main
+    engine.fit(model=model, datamodule=datamodule)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\engine\engine.py", line 400, in fit
+    self._setup_workspace(
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\engine\engine.py", line 270, in _setup_workspace
+    dataset_name = datamodule.name
+AttributeError: 'CustomVideoDataModule' object has no attribute 'name'
