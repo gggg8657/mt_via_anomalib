@@ -21,6 +21,8 @@ import numpy as np
 from anomalib.models.video import AiVad
 from anomalib.engine import Engine
 from anomalib.data.utils.split import ValSplitMode
+from anomalib.data import Avenue
+from anomalib.data.datasets.base.video import VideoTargetFrame
 import logging
 
 # 로깅 설정
@@ -34,6 +36,13 @@ class CustomVideoDataModule:
         self.video_paths = video_paths
         self.clip_length = clip_length
         self.frames_between_clips = frames_between_clips
+        
+        # Anomalib Engine이 요구하는 속성들
+        self.name = "CustomVideo"
+        self.task = "segmentation"  # 또는 "classification"
+        self.input_size = (224, 224)
+        self.normalization_std = (0.229, 0.224, 0.225)
+        self.normalization_mean = (0.485, 0.456, 0.406)
         
     def setup(self):
         """데이터셋 설정"""
@@ -206,14 +215,28 @@ def main():
     if len(video_paths) > 3:
         print(f"  ... 외 {len(video_paths)-3}개")
     
-    # 데이터 모듈 설정
+    # 데이터 모듈 설정 (Avenue 사용)
     print("\n📊 데이터 모듈 설정...")
-    datamodule = CustomVideoDataModule(
-        video_paths=video_paths,
-        clip_length=2,
-        frames_between_clips=1
-    )
-    datamodule.setup()
+    try:
+        # Avenue 데이터 모듈 사용 (더 안전함)
+        datamodule = Avenue(
+            root="/tmp/anomalib/data",
+            clip_length_in_frames=2,
+            frames_between_clips=1,
+            target_frame=VideoTargetFrame.LAST,
+            num_workers=0,
+        )
+        print("✅ Avenue 데이터 모듈 사용")
+        
+    except Exception as e:
+        print(f"⚠️ Avenue 데이터 모듈 실패: {e}")
+        print("🔧 커스텀 데이터 모듈 사용...")
+        datamodule = CustomVideoDataModule(
+            video_paths=video_paths,
+            clip_length=2,
+            frames_between_clips=1
+        )
+        datamodule.setup()
     
     # 사전 훈련된 모델 로드
     print("\n🤖 사전 훈련된 모델 로드...")
