@@ -165,6 +165,14 @@ class AiVadInferencer:
             
             print(f"✅ 체크포인트 로드 완료: {ckpt_path}")
             print(f"✅ 모델 디바이스: {next(self.model.parameters()).device}")
+            print(f"✅ Core 모델 디바이스: {next(self.core.parameters()).device}")
+            print(f"✅ 설정된 디바이스: {self.device}")
+            
+            # 디바이스 일치 확인
+            if next(self.model.parameters()).device.type != self.device:
+                print(f"⚠️  모델이 {next(self.model.parameters()).device}에 있지만 설정은 {self.device}")
+            else:
+                print("✅ 모델 디바이스 일치 확인")
             
         except Exception as e:
             print(f"❌ 체크포인트 로드 실패: {e}")
@@ -182,6 +190,16 @@ class AiVadInferencer:
     def _extract_regions_and_flows(self, first_frame: torch.Tensor, last_frame: torch.Tensor) -> Tuple[Any, Any]:
         """지역과 플로우 추출"""
         with torch.no_grad():
+            # 디바이스 확인 및 로그
+            print(f"🔍 Flow extractor 입력 디바이스: {first_frame.device}")
+            print(f"🔍 Core 모델 디바이스: {next(self.core.parameters()).device}")
+            
+            # 디바이스 불일치 시 강제 이동
+            if first_frame.device != next(self.core.parameters()).device:
+                print(f"⚠️  디바이스 불일치 감지, 데이터를 {next(self.core.parameters()).device}로 이동")
+                first_frame = first_frame.to(next(self.core.parameters()).device)
+                last_frame = last_frame.to(next(self.core.parameters()).device)
+            
             flows = self.core.flow_extractor(first_frame, last_frame)
             regions = self.core.region_extractor(first_frame, last_frame)
         return flows, regions
@@ -264,10 +282,20 @@ class AiVadInferencer:
         # 2프레임 클립 구성
         t0 = self._bgr_to_chw_float_tensor(self.frame_buffer[0])
         t1 = self._bgr_to_chw_float_tensor(self.frame_buffer[1])
-        batch = torch.stack([t0, t1], dim=0).unsqueeze(0).to(self.device)
+        
+        # 모든 텐서를 GPU로 이동
+        t0 = t0.to(self.device)
+        t1 = t1.to(self.device)
+        batch = torch.stack([t0, t1], dim=0).unsqueeze(0)
+        
+        print(f"🔍 입력 텐서 디바이스: t0={t0.device}, t1={t1.device}, batch={batch.device}")
 
         with torch.no_grad():
-            flows, regions = self._extract_regions_and_flows(t0.unsqueeze(0), t1.unsqueeze(0))
+            # 이미 GPU로 이동된 텐서 사용
+            t0_batch = t0.unsqueeze(0)
+            t1_batch = t1.unsqueeze(0)
+            
+            flows, regions = self._extract_regions_and_flows(t0_batch, t1_batch)
             output = self.core(batch)
 
         # 출력 구조 확인 및 안전한 접근
