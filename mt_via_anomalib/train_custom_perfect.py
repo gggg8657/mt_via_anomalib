@@ -151,24 +151,24 @@ def create_avenue_ground_truth_perfect(gt_path: pathlib.Path, video_frame_counts
     
     print("✅ Avenue ground truth 구조 생성 완료 (프레임 수 기반)")
 
-
+from video_files_list import video_files
 def main():
     print("🚀 커스텀 비디오 데이터셋으로 AI-VAD 모델 학습 시작 (완벽한 최종 버전)...")
     
     # ===== 여기를 수정하세요 =====
     # 1. 비디오 파일 경로들을 여기에 추가하세요
-    video_files = [
-        # 사용자 지정 경로:
-        "C:\\Users\\User\\Documents\\repos\\VAD\\CV_module_test_tmp\\STEAD\\videos\\normal_video.mp4",
-        "C:\\Users\\User\\Documents\\repos\\VAD\\CV_module_test_tmp\\STEAD\\videos\\unknown_video.mp4",
-        # 추가 예시:
-        # "C:\\Users\\YourName\\Videos\\normal_video1.mp4",
-        # "C:\\Users\\YourName\\Videos\\normal_video2.avi",
-        # "D:\\SecurityCameras\\normal_footage.mp4",
-    ]
+    # video_files = [
+    #     # 사용자 지정 경로:
+    #     "C:\\Users\\User\\Documents\\repos\\VAD\\CV_module_test_tmp\\STEAD\\videos\\normal_video.mp4",
+    #     "C:\\Users\\User\\Documents\\repos\\VAD\\CV_module_test_tmp\\STEAD\\videos\\unknown_video.mp4",
+    #     # 추가 예시:
+    #     # "C:\\Users\\YourName\\Videos\\normal_video1.mp4",
+    #     # "C:\\Users\\YourName\\Videos\\normal_video2.avi",
+    #     # "D:\\SecurityCameras\\normal_footage.mp4",
+    # ]
     
     # 2. 데이터셋이 저장될 경로
-    dataset_path = "./custom_avenue_perfect"
+    dataset_path = "/data/DJ/anomalib_DATAPATH"
     
     # 3. 학습 설정
     max_epochs = 3
