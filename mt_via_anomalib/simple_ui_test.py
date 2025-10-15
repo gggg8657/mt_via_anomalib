@@ -249,9 +249,14 @@ class SimpleMainWindow(QtWidgets.QMainWindow):
         try:
             # 간단한 더미 추론
             if self.model_loaded:
-                # 랜덤 점수 생성 (0.0 ~ 1.0)
-                score = np.random.random()
-                is_anomaly = score > 0.7
+                # 더 현실적인 점수 생성 (대부분 정상, 가끔 이상)
+                # 정상: 0.0 ~ 0.3, 이상: 0.7 ~ 1.0
+                if np.random.random() < 0.85:  # 85% 확률로 정상
+                    score = np.random.uniform(0.0, 0.3)
+                    is_anomaly = False
+                else:  # 15% 확률로 이상
+                    score = np.random.uniform(0.7, 1.0)
+                    is_anomaly = True
                 
                 # 더미 오버레이 생성
                 overlay = frame_bgr.copy()

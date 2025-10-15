@@ -182,7 +182,9 @@ class AiVadInferencer:
 
     @staticmethod
     def _bgr_to_chw_float_tensor(frame_bgr: np.ndarray) -> torch.Tensor:
-        frame_rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
+        # AI-VAD가 기대하는 크기로 리사이즈 (224x224)
+        frame_resized = cv2.resize(frame_bgr, (224, 224))
+        frame_rgb = cv2.cvtColor(frame_resized, cv2.COLOR_BGR2RGB)
         frame_rgb = frame_rgb.astype(np.float32) / 255.0
         chw = np.transpose(frame_rgb, (2, 0, 1))
         return torch.from_numpy(chw)
@@ -293,6 +295,7 @@ class AiVadInferencer:
         
         print(f"🔍 입력 텐서 디바이스: t0={t0.device}, t1={t1.device}, batch={batch.device}")
         print(f"🔍 배치 크기: {batch.shape}")
+        print(f"🔍 예상 크기: [1, 2, 3, 224, 224]")
 
         with torch.no_grad():
             # AI-VAD 모델에 직접 배치 입력
@@ -303,10 +306,10 @@ class AiVadInferencer:
                 print(f"❌ 모델 추론 실패: {model_error}")
                 # 더미 출력 생성
                 class DummyOutput:
-                    def __init__(self):
-                        self.pred_score = torch.tensor([0.5], device=self.device)
-                        self.anomaly_map = torch.rand(1, 1, 224, 224, device=self.device)
-                output = DummyOutput()
+                    def __init__(self, device):
+                        self.pred_score = torch.tensor([0.5], device=device)
+                        self.anomaly_map = torch.rand(1, 1, 224, 224, device=device)
+                output = DummyOutput(self.device)
             
             # 지역과 플로우는 별도로 추출하지 않음 (모델 내부에서 처리)
             regions = None
