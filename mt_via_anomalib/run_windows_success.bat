@@ -79,12 +79,12 @@ echo 🎉 모델 테스트가 성공적으로 완료되었습니다!
 echo ==========================================================
 echo.
 echo 📁 생성된 파일:
-echo - aivad_success_checkpoint.ckpt (학습된 모델)
+echo - aivad_ui_ready_checkpoint.ckpt (학습된 모델)
 echo.
 echo 🚀 다음 단계:
 echo 1. realtime_ui_advanced_windows.py 실행
 echo 2. "체크포인트 로드" 버튼 클릭
-echo 3. aivad_success_checkpoint.ckpt 파일 선택
+echo 3. aivad_ui_ready_checkpoint.ckpt 파일 선택
 echo 4. 웹캠이나 영상 파일로 실시간 이상 탐지 테스트
 echo.
 echo 📖 사용법은 WINDOWS_SETUP_GUIDE.md 파일을 참조하세요.

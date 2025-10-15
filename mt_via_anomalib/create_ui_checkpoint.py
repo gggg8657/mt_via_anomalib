@@ -45,7 +45,8 @@ def create_ui_compatible_checkpoint():
             'hyper_parameters': getattr(model, 'hparams', {}),
         }
         
-        torch.save(checkpoint, checkpoint_path)
+        # PyTorch 2.6 호환성을 위해 weights_only=False로 저장
+        torch.save(checkpoint, checkpoint_path, _use_new_zipfile_serialization=False)
         
         print(f"💾 UI 호환 체크포인트 저장: {checkpoint_path}")
         
@@ -54,9 +55,9 @@ def create_ui_compatible_checkpoint():
             size_mb = os.path.getsize(checkpoint_path) / 1024 / 1024
             print(f"📊 체크포인트 크기: {size_mb:.1f} MB")
         
-        # 체크포인트 내용 확인
+        # 체크포인트 내용 확인 (weights_only=False로 로드)
         print("🔍 체크포인트 내용 확인:")
-        loaded_checkpoint = torch.load(checkpoint_path, map_location='cpu')
+        loaded_checkpoint = torch.load(checkpoint_path, map_location='cpu', weights_only=False)
         for key in loaded_checkpoint.keys():
             print(f"   - {key}: {type(loaded_checkpoint[key])}")
         
@@ -79,8 +80,8 @@ def test_checkpoint_loading():
             print("❌ 체크포인트 파일이 존재하지 않습니다.")
             return False
         
-        # 체크포인트 로드 테스트
-        checkpoint = torch.load(checkpoint_path, map_location=device)
+        # 체크포인트 로드 테스트 (weights_only=False로 로드)
+        checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
         print("✅ 체크포인트 로드 성공")
         
         # 필요한 키 확인

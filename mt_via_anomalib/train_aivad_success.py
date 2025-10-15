@@ -220,19 +220,34 @@ def main():
     if component_success and core_success and forward_success:
         print("\n✅ 모든 테스트 성공!")
         
-        # 체크포인트 저장
-        checkpoint_path = "aivad_success_checkpoint.ckpt"
+        # UI 호환 체크포인트 저장
+        checkpoint_path = "aivad_ui_ready_checkpoint.ckpt"
         try:
-            torch.save(model.state_dict(), checkpoint_path)
-            print(f"💾 체크포인트 저장: {checkpoint_path}")
+            # UI가 기대하는 형식으로 체크포인트 생성
+            ui_checkpoint = {
+                'state_dict': model.state_dict(),
+                'pytorch-lightning_version': '2.5.5',
+                'model_class': 'AiVad',
+            }
+            
+            torch.save(ui_checkpoint, checkpoint_path)
+            print(f"💾 UI 호환 체크포인트 저장: {checkpoint_path}")
             
             # 체크포인트 파일 크기 확인
             if os.path.exists(checkpoint_path):
                 size_mb = os.path.getsize(checkpoint_path) / 1024 / 1024
                 print(f"📊 체크포인트 크기: {size_mb:.1f} MB")
+            
+            # 체크포인트 로드 테스트
+            print("🧪 UI 호환 체크포인트 로드 테스트...")
+            test_checkpoint = torch.load(checkpoint_path, map_location='cpu', weights_only=False)
+            print("✅ UI 호환 체크포인트 로드 성공")
+            print(f"   - 포함된 키: {list(test_checkpoint.keys())}")
                 
         except Exception as e:
             print(f"❌ 체크포인트 저장 실패: {e}")
+            import traceback
+            traceback.print_exc()
         
         return True
     else:
@@ -244,18 +259,33 @@ def main():
         if forward_success:
             print("✅ Post-processor 우회 테스트 성공")
         
-        # 부분적 성공이어도 체크포인트 저장 시도
-        checkpoint_path = "aivad_success_checkpoint.ckpt"
+        # 부분적 성공이어도 UI 호환 체크포인트 저장 시도
+        checkpoint_path = "aivad_ui_ready_checkpoint.ckpt"
         try:
-            torch.save(model.state_dict(), checkpoint_path)
-            print(f"💾 체크포인트 저장: {checkpoint_path}")
+            # UI가 기대하는 형식으로 체크포인트 생성
+            ui_checkpoint = {
+                'state_dict': model.state_dict(),
+                'pytorch-lightning_version': '2.5.5',
+                'model_class': 'AiVad',
+            }
+            
+            torch.save(ui_checkpoint, checkpoint_path)
+            print(f"💾 UI 호환 체크포인트 저장: {checkpoint_path}")
             
             if os.path.exists(checkpoint_path):
                 size_mb = os.path.getsize(checkpoint_path) / 1024 / 1024
                 print(f"📊 체크포인트 크기: {size_mb:.1f} MB")
+            
+            # 체크포인트 로드 테스트
+            print("🧪 UI 호환 체크포인트 로드 테스트...")
+            test_checkpoint = torch.load(checkpoint_path, map_location='cpu', weights_only=False)
+            print("✅ UI 호환 체크포인트 로드 성공")
+            print(f"   - 포함된 키: {list(test_checkpoint.keys())}")
                 
         except Exception as e:
             print(f"❌ 체크포인트 저장 실패: {e}")
+            import traceback
+            traceback.print_exc()
         
         return True
 
@@ -270,7 +300,7 @@ if __name__ == "__main__":
         print("\n🎉 모델 테스트가 성공적으로 완료되었습니다!")
         print("이제 realtime_ui_advanced_windows.py에서 체크포인트를 로드할 수 있습니다.")
         print("\n체크포인트 파일:")
-        print("- aivad_success_checkpoint.ckpt")
+        print("- aivad_ui_ready_checkpoint.ckpt")
         print("\n💡 이 버전의 특징:")
         print("- Post-processor 오류 완전 해결")
         print("- Tensor 크기 문제 해결")
