@@ -412,3 +412,153 @@ Epoch 0: 100%|██████████████████████
 
 (mt_p310) C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib>
 
+
+---- 2025.10.15. 19:19 ---
+
+(mt_p310) C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib>python train_custom_ultimate.py
+============================================================
+🏆 궁극의 안정 버전 - 커스텀 비디오 데이터셋으로 AI-VAD 학습
+============================================================
+🚀 커스텀 비디오 데이터셋으로 AI-VAD 모델 학습 시작 (궁극의 안정 버전)...
+📁 커스텀 Avenue 형식 데이터셋 준비 중...
+✅ 기존 데이터셋 정리 완료
+✅ 복사 완료: normal_video.mp4 -> 01.avi
+✅ 복사 완료: unknown_video.mp4 -> 02.avi
+📁 테스트용 비디오 복사 중...
+✅ 테스트 복사: 01.avi
+✅ 테스트 복사: 02.avi
+📁 Avenue ground truth 구조 생성 중...
+✅ Ground truth 생성: 1_label (100개 마스크)
+✅ Ground truth 생성: 2_label (100개 마스크)
+✅ Avenue ground truth 구조 생성 완료
+✅ Avenue 형식 데이터셋 준비 완료: 2개 파일 처리됨
+GPU 사용: NVIDIA GeForce RTX 4090
+GPU 메모리: 24.0 GB
+📁 데이터셋 로드 중...
+📂 데이터셋 경로: C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib\custom_avenue_ultimate
+📂 Ground truth 경로: C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib\custom_avenue_ultimate\ground_truth_demo
+✅ 데이터셋 로드 완료
+🤖 AI-VAD 모델 초기화...
+✅ 모델 초기화 완료
+⚙️  학습 엔진 설정...
+✅ 학습 엔진 설정 완료
+🎯 학습 시작!
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+HPU available: False, using: 0 HPUs
+`Trainer(val_check_interval=1.0)` was configured so validation will run at the end of the training epoch..
+You are using a CUDA device ('NVIDIA GeForce RTX 4090') that has Tensor Cores. To properly utilize them, you should set `torch.set_float32_matmul_precision('medium' | 'high')` which will trade-off precision for performance. For more details, read https://pytorch.org/docs/stable/generated/torch.set_float32_matmul_precision.html#torch.set_float32_matmul_precision
+  0%|                                                                                         | 0/1 [00:00<?, ?it/s]C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torchvision\io\_video_deprecation_warning.py:5: UserWarning: The video decoding and encoding capabilities of torchvision are deprecated from version 0.22 and will be removed in version 0.24. We recommend that you migrate to TorchCodec, where we'll consolidate the future decoding/encoding capabilities of PyTorch: https://github.com/pytorch/torchcodec
+  warnings.warn(
+100%|█████████████████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00,  4.54it/s]
+  0%|                                                                                         | 0/1 [00:00<?, ?it/s]C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torchvision\io\_video_deprecation_warning.py:5: UserWarning: The video decoding and encoding capabilities of torchvision are deprecated from version 0.22 and will be removed in version 0.24. We recommend that you migrate to TorchCodec, where we'll consolidate the future decoding/encoding capabilities of PyTorch: https://github.com/pytorch/torchcodec
+  warnings.warn(
+100%|█████████████████████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00,  5.28it/s]
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0,1]
+C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\core\optimizer.py:183: `LightningModule.configure_optimizers` returned `None`, this fit will run with no optimizer
+
+  | Name           | Type          | Params | Mode
+---------------------------------------------------------
+0 | pre_processor  | PreProcessor  | 0      | train
+1 | post_processor | PostProcessor | 0      | train
+2 | evaluator      | Evaluator     | 0      | train
+3 | model          | AiVadModel    | 260 M  | train
+---------------------------------------------------------
+259 M     Trainable params
+447 K     Non-trainable params
+260 M     Total params
+1,041.500 Total estimated model params size (MB)
+670       Modules in train mode
+227       Modules in eval mode
+C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\trainer\connectors\data_connector.py:428: Consider setting `persistent_workers=True` in 'train_dataloader' to speed up the dataloader worker initialization.
+C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\trainer\connectors\data_connector.py:428: Consider setting `persistent_workers=True` in 'val_dataloader' to speed up the dataloader worker initialization.
+C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\loops\fit_loop.py:527: Found 227 module(s) in eval mode at the start of training. This may lead to unexpected behavior during training. If this is intentional, you can ignore this warning.
+Epoch 0: 100%|██████████████████████████████████████████████████████████████████████| 10/10 [00:10<00:00,  0.92it/s] ❌ 학습 중 오류 발생: Caught IndexError in DataLoader worker process 0.                       | 0/? [00:00<?, ?it/s]
+Original Traceback (most recent call last):
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\utils\data\_utils\worker.py", line 349, in _worker_loop
+    data = fetcher.fetch(index)  # type: ignore[possibly-undefined]
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\utils\data\_utils\fetch.py", line 52, in fetch
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\utils\data\_utils\fetch.py", line 52, in <listcomp>
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\data\datasets\base\video.py", line 207, in __getitem__
+    item = self.indexer.get_item(index)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\data\utils\video.py", line 132, in get_item
+    gt_mask=self.get_mask(idx),
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\data\datasets\video\avenue.py", line 203, in get_mask
+    mask_paths = [mask_frames[idx] for idx in frames.int()]
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\data\datasets\video\avenue.py", line 203, in <listcomp>
+    mask_paths = [mask_frames[idx] for idx in frames.int()]
+IndexError: list index out of range
+
+Traceback (most recent call last):
+  File "C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib\train_custom_ultimate.py", line 285, in main
+    engine.fit(model=model, datamodule=datamodule)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\engine\engine.py", line 412, in fit
+    self.trainer.fit(model, train_dataloaders, val_dataloaders, datamodule, ckpt_path)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\trainer\trainer.py", line 560, in fit
+    call._call_and_handle_interrupt(
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\trainer\call.py", line 49, in _call_and_handle_interrupt
+    return trainer_fn(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\trainer\trainer.py", line 598, in _fit_impl
+    self._run(model, ckpt_path=ckpt_path)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\trainer\trainer.py", line 1011, in _run
+    results = self._run_stage()
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\trainer\trainer.py", line 1055, in _run_stage
+    self.fit_loop.run()
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\loops\fit_loop.py", line 216, in run
+    self.advance()
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\loops\fit_loop.py", line 458, in advance
+    self.epoch_loop.run(self._data_fetcher)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\loops\training_epoch_loop.py", line 153, in run
+    self.on_advance_end(data_fetcher)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\loops\training_epoch_loop.py", line 398, in on_advance_end
+    self.val_loop.run()
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\loops\utilities.py", line 179, in _decorator
+    return loop_run(self, *args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\loops\evaluation_loop.py", line 138, in run
+    batch, batch_idx, dataloader_idx = next(data_fetcher)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\loops\fetchers.py", line 134, in __next__
+    batch = super().__next__()
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\loops\fetchers.py", line 61, in __next__
+    batch = next(self.iterator)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\utilities\combined_loader.py", line 341, in __next__
+    out = next(self._iterator)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\utilities\combined_loader.py", line 142, in __next__
+    out = next(self.iterators[0])
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\utils\data\dataloader.py", line 733, in __next__
+    data = self._next_data()
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\utils\data\dataloader.py", line 1515, in _next_data
+    return self._process_data(data, worker_id)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\utils\data\dataloader.py", line 1550, in _process_data
+    data.reraise()
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\_utils.py", line 750, in reraise
+    raise exception
+IndexError: Caught IndexError in DataLoader worker process 0.
+Original Traceback (most recent call last):
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\utils\data\_utils\worker.py", line 349, in _worker_loop
+    data = fetcher.fetch(index)  # type: ignore[possibly-undefined]
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\utils\data\_utils\fetch.py", line 52, in fetch
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\utils\data\_utils\fetch.py", line 52, in <listcomp>
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\data\datasets\base\video.py", line 207, in __getitem__
+    item = self.indexer.get_item(index)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\data\utils\video.py", line 132, in get_item
+    gt_mask=self.get_mask(idx),
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\data\datasets\video\avenue.py", line 203, in get_mask
+    mask_paths = [mask_frames[idx] for idx in frames.int()]
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\data\datasets\video\avenue.py", line 203, in <listcomp>
+    mask_paths = [mask_frames[idx] for idx in frames.int()]
+IndexError: list index out of range
+
+
+💥 학습에 실패했습니다.
+
+📋 해결 방법:
+1. video_files 리스트에 올바른 비디오 파일 경로를 추가하세요
+2. 비디오 파일이 존재하는지 확인하세요
+3. 지원되는 형식인지 확인하세요 (.mp4, .avi, .mov, .mkv, .flv, .wmv)
+4. 관리자 권한으로 실행하세요
+Epoch 0: 100%|██████████████████████████████████████████████████████████████████████| 10/10 [00:21<00:00,  0.47it/s]
+
