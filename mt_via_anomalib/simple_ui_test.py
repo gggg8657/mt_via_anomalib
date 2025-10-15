@@ -15,6 +15,9 @@ import cv2
 import numpy as np
 import torch
 from PySide6 import QtCore, QtGui, QtWidgets
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
 
 # 윈도우즈 환경 설정
 if platform.system() == "Windows":
@@ -118,6 +121,11 @@ class SimpleMainWindow(QtWidgets.QMainWindow):
         self.reader: Optional[SimpleVideoReader] = None
         self.model_loaded = False
         
+        # 점수 히스토리 및 그래프
+        self.score_history = deque(maxlen=100)
+        self.anomaly_count = 0
+        self.normal_count = 0
+        
         self._setup_ui()
         
     def _setup_ui(self):
@@ -152,15 +160,34 @@ class SimpleMainWindow(QtWidgets.QMainWindow):
         self.video_label.setText("비디오를 선택하세요")
         layout.addWidget(self.video_label)
         
+        # 그래프 영역 추가
+        graph_widget = QtWidgets.QWidget()
+        graph_layout = QtWidgets.QHBoxLayout(graph_widget)
+        
+        # 점수 히스토리 그래프
+        self.figure = Figure(figsize=(8, 3), dpi=80)
+        self.canvas = FigureCanvas(self.figure)
+        self.ax = self.figure.add_subplot(111)
+        self.ax.set_title('Score History')
+        self.ax.set_xlabel('Frame')
+        self.ax.set_ylabel('Score')
+        self.ax.set_ylim(0, 1)
+        self.ax.axhline(y=0.5, color='r', linestyle='--', alpha=0.7, label='Threshold')
+        
+        graph_layout.addWidget(self.canvas)
+        layout.addWidget(graph_widget)
+        
         # 상태 표시
         status_layout = QtWidgets.QHBoxLayout()
         self.lbl_status = QtWidgets.QLabel("상태: 대기")
         self.lbl_score = QtWidgets.QLabel("Score: 0.000")
         self.lbl_fps = QtWidgets.QLabel("FPS: 0")
+        self.lbl_stats = QtWidgets.QLabel("정상: 0, 이상: 0")
         
         status_layout.addWidget(self.lbl_status)
         status_layout.addWidget(self.lbl_score)
         status_layout.addWidget(self.lbl_fps)
+        status_layout.addWidget(self.lbl_stats)
         
         layout.addLayout(status_layout)
         
@@ -250,13 +277,23 @@ class SimpleMainWindow(QtWidgets.QMainWindow):
             # 간단한 더미 추론
             if self.model_loaded:
                 # 더 현실적인 점수 생성 (대부분 정상, 가끔 이상)
-                # 정상: 0.0 ~ 0.3, 이상: 0.7 ~ 1.0
-                if np.random.random() < 0.85:  # 85% 확률로 정상
-                    score = np.random.uniform(0.0, 0.3)
-                    is_anomaly = False
-                else:  # 15% 확률로 이상
-                    score = np.random.uniform(0.7, 1.0)
+                # 정상: 0.0 ~ 0.4, 이상: 0.6 ~ 1.0, 임계치: 0.5
+                if np.random.random() < 0.9:  # 90% 확률로 정상
+                    score = np.random.uniform(0.0, 0.4)  # 정상 범위
+                    is_anomaly = score > 0.5  # 임계치 0.5
+                else:  # 10% 확률로 이상
+                    score = np.random.uniform(0.6, 1.0)  # 이상 범위
                     is_anomaly = True
+                
+                # 점수 히스토리에 추가
+                self.score_history.append(score)
+                if is_anomaly:
+                    self.anomaly_count += 1
+                else:
+                    self.normal_count += 1
+                
+                # 그래프 업데이트
+                self._update_graph()
                 
                 # 더미 오버레이 생성
                 overlay = frame_bgr.copy()
@@ -272,6 +309,12 @@ class SimpleMainWindow(QtWidgets.QMainWindow):
                 self.lbl_score.setStyleSheet(
                     "color: #ff4444; font-weight: bold;" if is_anomaly else "color: #00ff00; font-weight: bold;"
                 )
+                
+                # 통계 업데이트
+                total = self.normal_count + self.anomaly_count
+                normal_pct = (self.normal_count / total * 100) if total > 0 else 0
+                anomaly_pct = (self.anomaly_count / total * 100) if total > 0 else 0
+                self.lbl_stats.setText(f"정상: {self.normal_count}({normal_pct:.1f}%), 이상: {self.anomaly_count}({anomaly_pct:.1f}%)")
             else:
                 overlay = frame_bgr
                 self.lbl_score.setText("Score: N/A")
@@ -304,6 +347,37 @@ class SimpleMainWindow(QtWidgets.QMainWindow):
         self.lbl_fps.setText(f"FPS: {self.fps_counter}")
         self.fps_counter = 0
         
+    def _update_graph(self):
+        """점수 히스토리 그래프 업데이트"""
+        if len(self.score_history) > 1:
+            self.ax.clear()
+            
+            # 점수 히스토리 플롯
+            scores = list(self.score_history)
+            frames = range(len(scores))
+            
+            # 정상/이상 색상으로 구분
+            colors = ['green' if score <= 0.5 else 'red' for score in scores]
+            
+            self.ax.scatter(frames, scores, c=colors, alpha=0.6, s=10)
+            self.ax.plot(frames, scores, 'b-', alpha=0.3, linewidth=1)
+            
+            # 임계치 라인
+            self.ax.axhline(y=0.5, color='r', linestyle='--', alpha=0.7, label='Threshold')
+            
+            # 그래프 설정
+            self.ax.set_title('Score History')
+            self.ax.set_xlabel('Frame')
+            self.ax.set_ylabel('Score')
+            self.ax.set_ylim(0, 1)
+            self.ax.grid(True, alpha=0.3)
+            
+            # 범례
+            self.ax.legend(['Threshold'])
+            
+            # 캔버스 새로고침
+            self.canvas.draw()
+    
     def status_message(self, msg: str) -> None:
         self.lbl_status.setText(f"상태: {msg}")
         

@@ -44,7 +44,8 @@ if %ERRORLEVEL% NEQ 0 (
     echo 💡 해결 방법:
     echo 1. PySide6 설치 확인: pip install PySide6
     echo 2. OpenCV 설치 확인: pip install opencv-python
-    echo 3. 관리자 권한으로 실행
+    echo 3. Matplotlib 설치 확인: pip install matplotlib
+    echo 4. 관리자 권한으로 실행
     echo.
     pause
     exit /b 1

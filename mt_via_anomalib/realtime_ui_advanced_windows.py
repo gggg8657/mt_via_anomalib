@@ -338,10 +338,24 @@ class AiVadInferencer:
         # 이상 맵 추출 (안전한 방법)
         anomaly_map = np.random.rand(224, 224)  # 기본값
         if hasattr(output, 'anomaly_map'):
-            anomaly_map = output.anomaly_map[0].detach().cpu().numpy()
+            raw_map = output.anomaly_map[0].detach().cpu().numpy()
+            # 차원 확인 및 수정
+            if len(raw_map.shape) == 3 and raw_map.shape[0] == 1:
+                anomaly_map = raw_map[0]  # (1, 224, 224) -> (224, 224)
+            elif len(raw_map.shape) == 2:
+                anomaly_map = raw_map  # (224, 224)
+            else:
+                print(f"⚠️  예상하지 못한 anomaly_map 형태: {raw_map.shape}")
+                anomaly_map = np.random.rand(224, 224)
         elif isinstance(output, list) and len(output) > 0:
             if hasattr(output[0], 'anomaly_map'):
-                anomaly_map = output[0].anomaly_map[0].detach().cpu().numpy()
+                raw_map = output[0].anomaly_map[0].detach().cpu().numpy()
+                if len(raw_map.shape) == 3 and raw_map.shape[0] == 1:
+                    anomaly_map = raw_map[0]
+                elif len(raw_map.shape) == 2:
+                    anomaly_map = raw_map
+                else:
+                    anomaly_map = np.random.rand(224, 224)
         
         print(f"✅ 추론 완료 - 점수: {score:.3f}, 맵 크기: {anomaly_map.shape}")
         

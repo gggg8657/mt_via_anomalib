@@ -39,10 +39,11 @@ def _write_videos_for_category(
     chunk_size: int,
     fourcc_str: str,
     resize_to: Optional[Tuple[int, int]] = None,
-) -> List[str]:
+    start_index: int = 0,
+) -> Tuple[List[str], int]:
     written_files: List[str] = []
     if not image_paths:
-        return written_files
+        return written_files, start_index
 
     os.makedirs(output_dir, exist_ok=True)
 
@@ -61,7 +62,7 @@ def _write_videos_for_category(
         end = min((chunk_idx + 1) * chunk_size, len(image_paths))
         chunk_images = image_paths[start:end]
 
-        out_name = f"{category}_{chunk_idx}.avi"
+        out_name = f"{category}_{start_index + chunk_idx}.avi"
         out_path = os.path.join(output_dir, out_name)
 
         writer = cv2.VideoWriter(out_path, fourcc, fps, frame_size)
@@ -80,10 +81,10 @@ def _write_videos_for_category(
         writer.release()
         written_files.append(out_path)
 
-    return written_files
+    return written_files, start_index + num_chunks
 
 
-def _extract_category_to_images(data: Any, base_root: Optional[str]) -> Dict[str, List[str]]:
+def _extract_category_to_images(data: Any, base_root: Optional[str]) -> Dict[str, List[List[str]]]:
     """
     image_segments.json의 다양한 스키마를 너그럽게 지원하는 추출기.
 
@@ -109,7 +110,10 @@ def _extract_category_to_images(data: Any, base_root: Optional[str]) -> Dict[str
                 # 하위 dict에서 path 키 추출
                 extracted = [item.get("path") for item in paths if isinstance(item, dict) and item.get("path")]
                 category_to_lists[cat].append(normalize_list(extracted))
-        return {k: _ensure_existing(_flatten(v)) for k, v in category_to_lists.items()}
+        # 각 그룹별 파일 존재 여부 필터링 유지
+        return {k: [
+            _ensure_existing(group)
+        ] if isinstance(group, list) else [] for k, group in category_to_lists.items()}  # type: ignore[dict-item]
 
     if isinstance(data, list):
         # 리스트 항목 형태별 처리
@@ -135,8 +139,17 @@ def _extract_category_to_images(data: Any, base_root: Optional[str]) -> Dict[str
                 # 5) 단일 이미지 레코드
                 if "path" in item and isinstance(item["path"], str) and cat:
                     category_to_lists[cat].append(normalize_list([item["path"]]))
-
-        return {k: _ensure_existing(_flatten(v)) for k, v in category_to_lists.items()}
+        # 그룹별 존재 파일 필터링(빈 그룹 제거)
+        cleaned: Dict[str, List[List[str]]] = {}
+        for k, groups in category_to_lists.items():
+            filtered_groups = []
+            for group in groups:
+                existing = _ensure_existing(group)
+                if existing:
+                    filtered_groups.append(existing)
+            if filtered_groups:
+                cleaned[k] = filtered_groups
+        return cleaned
 
     raise ValueError("지원되지 않는 JSON 구조입니다. dict 또는 list 형태여야 합니다.")
 
@@ -162,19 +175,24 @@ def make_videos(
         resize_to = (resize_width, resize_height)
 
     results: Dict[str, List[str]] = {}
-    for category, images in category_to_images.items():
-        if not images:
+    for category, groups in category_to_images.items():
+        if not groups:
             continue
-        written = _write_videos_for_category(
-            category=category,
-            image_paths=images,
-            output_dir=output_dir,
-            fps=fps,
-            chunk_size=max_frames_per_video,
-            fourcc_str=fourcc,
-            resize_to=resize_to,
-        )
-        results[category] = written
+        current_index = 0
+        written_all: List[str] = []
+        for group in groups:
+            written, current_index = _write_videos_for_category(
+                category=category,
+                image_paths=group,
+                output_dir=output_dir,
+                fps=fps,
+                chunk_size=max_frames_per_video,
+                fourcc_str=fourcc,
+                resize_to=resize_to,
+                start_index=current_index,
+            )
+            written_all.extend(written)
+        results[category] = written_all
 
     return results
 
