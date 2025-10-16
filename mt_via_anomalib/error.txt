@@ -3346,3 +3346,161 @@ GPU: NVIDIA GeForce RTX 4090
 1. UI에서 'aivad_video_sequence_finetuned.ckpt' 로드
 2. 실제 성능 테스트
 3. 필요시 추가 파인튜닝
+
+--- ISSUE 18:45 ---
+
+
+📈 Epoch 3/15
+  ⚠️ Batch 1 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 2 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 3 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 4 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 5 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 6 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 7 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 8 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 9 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 10 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 11 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 12 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 13 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 14 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 15 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 16 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 17 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 18 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 19 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 20 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 21 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 22 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 23 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 24 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 25 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 26 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 27 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 28 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 29 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 30 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 31 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 32 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 33 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 34 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 35 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 36 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 37 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 38 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 39 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 40 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 41 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 42 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 43 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 44 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 45 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 46 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 47 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 48 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 49 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 50 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 51 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 52 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 53 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 54 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 55 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 56 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 57 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 58 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 59 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 60 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 61 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 62 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 63 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 64 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 65 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 66 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 67 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 68 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 69 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 70 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 71 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 72 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 73 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 74 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 75 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 76 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 77 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 78 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 79 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 80 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 81 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 82 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 83 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 84 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 85 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 86 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 87 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 88 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 89 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 90 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 91 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 92 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 93 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 94 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 95 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 96 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 97 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 98 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 99 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 100 실패: element 0 of tensors does not require grad and does not have a grad_fn
+Traceback (most recent call last):
+  File "C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib\train_aivad_reconstruction.py", line 356, in <module>
+    main()
+  File "C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib\train_aivad_reconstruction.py", line 269, in main
+    output = model.model(video_tensor)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\models\video\ai_vad\torch_model.py", line 196, in forward
+    features_per_batch = self.feature_extractor(first_frame, flows, regions)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\models\video\ai_vad\features.py", line 169, in forward
+    deep_features = self.deep_extractor(rgb_batch, boxes, batch_size)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\models\video\ai_vad\features.py", line 223, in forward
+    features = [self.encoder.encode_image(self.transform(batch)) for batch in batched_regions]
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\models\video\ai_vad\features.py", line 223, in <listcomp>
+    features = [self.encoder.encode_image(self.transform(batch)) for batch in batched_regions]
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\models\video\ai_vad\clip\model.py", line 366, in encode_image
+    return self.visual(image.type(self.dtype))
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\models\video\ai_vad\clip\model.py", line 256, in forward
+    x = self.transformer(x)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\models\video\ai_vad\clip\model.py", line 220, in forward
+    return self.resblocks(x)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\container.py", line 240, in forward
+    input = module(input)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\models\video\ai_vad\clip\model.py", line 207, in forward
+    x = x + self.attention(self.ln_1(x))
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1934, in __getattr__
+    if name in _buffers:
