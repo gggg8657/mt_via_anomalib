@@ -9,6 +9,7 @@ __pycache__/
 *.mov
 *.png
 *.zip
+*.jpg
 # Distribution / packaging
 .Python
 build/
