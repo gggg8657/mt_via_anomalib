@@ -3504,3 +3504,11 @@ Traceback (most recent call last):
     x = x + self.attention(self.ln_1(x))
   File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1934, in __getattr__
     if name in _buffers:
+
+
+--- ISSUE ---
+(mt_p310) C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib>python train_aivad_proper.py
+Traceback (most recent call last):
+  File "C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib\train_aivad_proper.py", line 15, in <module>
+    from anomalib.data.utils import VideoTargetFrame
+ImportError: cannot import name 'VideoTargetFrame' from 'anomalib.data.utils' (C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\data\utils\__init__.py)
