@@ -2824,3 +2824,176 @@ Traceback (most recent call last):
 ValueError: cannot set a frame with no defined index and a scalar
 
 
+--- ISSUE : 2025.10.16. ---
+(mt_p310) C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib>python train_simple_finetune.py
+🚀 간단한 AI-VAD 파인튜닝 시작
+==================================================
+🖥️ 사용 디바이스: cuda
+GPU: NVIDIA GeForce RTX 4090
+GPU 메모리: 24.0 GB
+
+📁 훈련할 비디오 파일: 56개
+  1. normal_0.avi
+  2. normal_1.avi
+  3. normal_2.avi
+  4. normal_3.avi
+  5. normal_4.avi
+  ... 외 51개
+
+📊 데이터셋 생성...
+  📹 normal_0.avi: 1802 frames
+  📹 normal_1.avi: 1674 frames
+  📹 normal_2.avi: 273 frames
+  📹 normal_3.avi: 198 frames
+  📹 normal_4.avi: 802 frames
+  📹 normal_5.avi: 2094 frames
+  📹 normal_6.avi: 527 frames
+  📹 normal_7.avi: 511 frames
+  📹 normal_8.avi: 122 frames
+  📹 normal_9.avi: 1485 frames
+  📹 normal_10.avi: 769 frames
+  📹 normal_11.avi: 984 frames
+  📹 normal_12.avi: 845 frames
+  📹 normal_13.avi: 72 frames
+  📹 normal_14.avi: 408 frames
+  📹 normal_15.avi: 82 frames
+  📹 normal_16.avi: 491 frames
+  📹 normal_17.avi: 440 frames
+  📹 normal_18.avi: 484 frames
+  📹 normal_19.avi: 324 frames
+  📹 normal_20.avi: 672 frames
+  📹 normal_21.avi: 2460 frames
+  📹 normal_22.avi: 1959 frames
+  📹 rest_0.avi: 214 frames
+  📹 rest_1.avi: 57 frames
+  📹 rest_2.avi: 19 frames
+  📹 rest_3.avi: 76 frames
+  📹 rest_4.avi: 24 frames
+  📹 rest_5.avi: 145 frames
+  📹 rest_6.avi: 42 frames
+  📹 rest_7.avi: 777 frames
+  📹 rest_8.avi: 80 frames
+  📹 rest_9.avi: 247 frames
+  📹 rest_10.avi: 212 frames
+  📹 rest_11.avi: 260 frames
+  📹 rest_12.avi: 210 frames
+  📹 rest_13.avi: 81 frames
+  📹 rest_14.avi: 226 frames
+  📹 rest_15.avi: 193 frames
+  📹 rest_16.avi: 223 frames
+  📹 rest_17.avi: 202 frames
+  📹 rest_18.avi: 10 frames
+  📹 rest_19.avi: 120 frames
+  📹 rest_20.avi: 139 frames
+  📹 rest_21.avi: 279 frames
+  📹 rest_22.avi: 145 frames
+  📹 rest_23.avi: 136 frames
+  📹 rest_24.avi: 96 frames
+  📹 rest_25.avi: 185 frames
+  📹 rest_26.avi: 474 frames
+  📹 rest_27.avi: 358 frames
+  📹 rest_28.avi: 201 frames
+  📹 rest_29.avi: 106 frames
+  📹 rest_30.avi: 78 frames
+  📹 rest_31.avi: 203 frames
+  📹 rest_32.avi: 438 frames
+📊 데이터셋 정보:
+  - 비디오 파일: 56개
+  - 생성된 클립: 2586개
+✅ 데이터 로더 생성 완료 (배치 수: 2586)
+
+🤖 모델 로드...
+🔄 모델 로드: aivad_proper_checkpoint.ckpt
+INFO:anomalib.models.components.base.anomalib_module:Initializing AiVad model.
+✅ 사전 훈련된 가중치 로드 완료
+
+🎯 모델 훈련 시작...
+🚀 모델 훈련 시작 (에포크: 3, 학습률: 1e-05)
+  ❌ 배치 0 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 1 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 2 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 3 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 4 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 5 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 6 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 7 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 8 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 9 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 10 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 11 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 12 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 13 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 14 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 15 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 16 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 17 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 18 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 19 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 20 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 21 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 22 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 23 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 24 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 25 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 26 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 27 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 28 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 29 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 30 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 31 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 32 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 33 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 34 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 35 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 36 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 37 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 38 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 39 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 40 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 41 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 42 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 43 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 44 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 45 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 46 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 47 처리 실패: 'list' object has no attribute 'pred_score'
+  ❌ 배치 48 처리 실패: 'list' object has no attribute 'pred_score'
+Traceback (most recent call last):
+  File "C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib\train_simple_finetune.py", line 251, in <module>
+    main()
+  File "C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib\train_simple_finetune.py", line 225, in main
+    train_model(
+  File "C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib\train_simple_finetune.py", line 151, in train_model
+    output = model(batch_data)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\models\components\base\anomalib_module.py", line 200, in forward
+    batch = self.model(batch)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\models\video\ai_vad\torch_model.py", line 193, in forward
+    regions = self.region_extractor(first_frame, last_frame)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1751, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\modules\module.py", line 1762, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\models\video\ai_vad\regions.py", line 115, in forward
+    regions = self._add_foreground_boxes(
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\models\video\ai_vad\regions.py", line 181, in _add_foreground_boxes
+    batch_boxes, _ = masks_to_boxes(foreground_map)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\data\utils\boxes.py", line 56, in masks_to_boxes
+    batch_comps = connected_components_gpu(masks).squeeze(1)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\utils\cv\connected_components.py", line 63, in connected_components_gpu
+    components = connected_components(image, num_iterations=num_iterations)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\kornia\contrib\connected_components.py", line 73, in connected_components
+    out = F.max_pool2d(out, kernel_size=3, stride=1, padding=1)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\_jit_internal.py", line 622, in fn
+    return if_false(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\functional.py", line 830, in _max_pool2d
+    return torch.max_pool2d(input, kernel_size, stride, padding, dilation, ceil_mode)
+KeyboardInterrupt
+^C
