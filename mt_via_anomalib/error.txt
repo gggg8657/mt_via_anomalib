@@ -3272,3 +3272,77 @@ Traceback (most recent call last):
     return tensor.sub_(mean).div_(std)
 RuntimeError: The size of tensor a (8) must match the size of tensor b (3) at non-singleton dimension 0
 Epoch 0:   0%|                                                                               | 0/12 [00:00<?, ?it/s]
+
+
+--- ISSUE 18:22 ---
+
+(mt_p310) C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib>python train_aivad_video_sequence.py
+🚀 비디오 시퀀스로 AI-VAD 파인튜닝
+==================================================
+🖥️ 사용 디바이스: cuda
+GPU: NVIDIA GeForce RTX 4090
+📁 비디오 시퀀스 생성: image_segments.json
+  📂 정상 이미지 폴더: video_sequence_dataset\train\good
+  📊 JSON 로드 완료: 144개 세그먼트
+    🎬 seq_001_00_frame1_frame_20250728-143012_273.jpg
+    🎬 seq_001_00_frame2_frame_20250728-143012_308.jpg
+    🎬 seq_001_01_frame1_frame_20250728-143012_308.jpg
+    🎬 seq_001_01_frame2_frame_20250728-143012_340.jpg
+    🎬 seq_001_02_frame1_frame_20250728-143012_340.jpg
+    🎬 seq_001_02_frame2_frame_20250728-143012_373.jpg
+    🎬 seq_002_00_frame1_frame_20250728-143442_128.jpg
+    🎬 seq_002_00_frame2_frame_20250728-143442_161.jpg
+    🎬 seq_002_01_frame1_frame_20250728-143442_161.jpg
+    🎬 seq_002_01_frame2_frame_20250728-143442_194.jpg
+    🎬 seq_002_02_frame1_frame_20250728-143442_194.jpg
+    🎬 seq_002_02_frame2_frame_20250728-143442_228.jpg
+    🎬 seq_003_00_frame1_frame_20250728-143600_291.jpg
+    🎬 seq_003_00_frame2_frame_20250728-143600_325.jpg
+    🎬 seq_003_01_frame1_frame_20250728-143600_325.jpg
+    🎬 seq_003_01_frame2_frame_20250728-143600_360.jpg
+    🎬 seq_003_02_frame1_frame_20250728-143600_360.jpg
+    🎬 seq_003_02_frame2_frame_20250728-143600_391.jpg
+    🎬 seq_004_00_frame1_frame_20250728-143626_423.jpg
+    🎬 seq_004_00_frame2_frame_20250728-143626_457.jpg
+  ✅ 정상 세그먼트: 23개
+  ✅ 복사된 이미지: 138개
+
+📊 비디오 시퀀스 데이터셋 생성...
+📸 총 138개 이미지 발견
+🎬 137개 비디오 시퀀스 생성
+✅ 비디오 시퀀스 데이터셋 생성 완료
+   📊 배치 크기: 2
+   📊 총 배치 수: 68
+
+🤖 AI-VAD 모델 생성...
+✅ AI-VAD 모델 생성 완료
+
+🔄 사전 훈련된 가중치 로드: aivad_proper_checkpoint.ckpt
+✅ 사전 훈련된 가중치 로드 완료
+
+🎯 AI-VAD 파인튜닝 시작...
+
+📈 Epoch 1/2
+  ⚠️ Batch 1 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 2 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 3 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 4 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 5 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  📊 평균 손실: 0.0000
+
+📈 Epoch 2/2
+  ⚠️ Batch 1 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 2 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 3 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 4 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  ⚠️ Batch 5 실패: element 0 of tensors does not require grad and does not have a grad_fn
+  📊 평균 손실: 0.0000
+✅ 파인튜닝 완료!
+💾 파인튜닝된 모델 저장: aivad_video_sequence_finetuned.ckpt
+📊 파일 크기: 757.9 MB
+
+🎉 비디오 시퀀스로 AI-VAD 파인튜닝 완료!
+💡 다음 단계:
+1. UI에서 'aivad_video_sequence_finetuned.ckpt' 로드
+2. 실제 성능 테스트
+3. 필요시 추가 파인튜닝
