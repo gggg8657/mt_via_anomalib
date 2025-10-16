@@ -3664,3 +3664,82 @@ Traceback (most recent call last):
     return tensor.sub_(mean).div_(std)
 RuntimeError: output with shape [1, 520, 960] doesn't match the broadcast shape [3, 520, 960]
 Epoch 0:   0%|                                                                               | 0/56 [00:00<?, ?it/s]
+
+
+
+--- ISSUE 19:03 ---
+
+(mt_p310) C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib>python train_aivad_fixed.py
+🚀 AI-VAD 올바른 학습 방법 (최종 수정 버전)
+============================================================
+💡 핵심 원리:
+   1. Feature Extraction: Flow, Region, Pose, Deep features
+   2. Density Estimation: 정상 데이터의 분포 학습
+   3. One-Class Learning: 정상 데이터만으로 분포 모델링
+   4. No NN Training: 가중치 학습 없음!
+   5. 이미지 → 비디오 시퀀스 변환
+============================================================
+🖥️ 사용 디바이스: cuda
+GPU: NVIDIA GeForce RTX 4090
+📁 AI-VAD용 수정된 데이터셋 생성: image_segments.json
+  📂 정상 이미지 폴더: fixed_dataset\train\good
+  📊 JSON 로드 완료: 144개 세그먼트
+    📸 normal_001_00_frame_20250728-143012_273.jpg
+    📸 normal_001_01_frame_20250728-143012_308.jpg
+    📸 normal_001_02_frame_20250728-143012_340.jpg
+    📸 normal_001_03_frame_20250728-143012_373.jpg
+    📸 normal_001_04_frame_20250728-143012_408.jpg
+    📸 normal_002_00_frame_20250728-143442_128.jpg
+    📸 normal_002_01_frame_20250728-143442_161.jpg
+    📸 normal_002_02_frame_20250728-143442_194.jpg
+    📸 normal_002_03_frame_20250728-143442_228.jpg
+    📸 normal_002_04_frame_20250728-143442_261.jpg
+    📸 normal_003_00_frame_20250728-143600_291.jpg
+    📸 normal_003_01_frame_20250728-143600_325.jpg
+    📸 normal_003_02_frame_20250728-143600_360.jpg
+    📸 normal_003_03_frame_20250728-143600_391.jpg
+    📸 normal_003_04_frame_20250728-143600_425.jpg
+    📸 normal_004_00_frame_20250728-143626_423.jpg
+    📸 normal_004_01_frame_20250728-143626_457.jpg
+    📸 normal_004_02_frame_20250728-143626_490.jpg
+    📸 normal_004_03_frame_20250728-143626_526.jpg
+    📸 normal_004_04_frame_20250728-143626_557.jpg
+  ✅ 정상 세그먼트: 23개
+  ✅ 복사된 이미지: 115개
+
+📊 비디오 시퀀스 데이터셋 생성...
+📸 총 115개 이미지 발견
+🎬 114개 비디오 시퀀스 생성
+✅ 비디오 시퀀스 데이터셋 생성 완료
+   📊 배치 크기: 1
+   📊 총 배치 수: 114
+
+🤖 AI-VAD 모델 생성...
+✅ AI-VAD 모델 생성 완료
+
+🔄 사전 훈련된 가중치 로드: aivad_proper_checkpoint.ckpt
+✅ 사전 훈련된 가중치 로드 완료
+
+🔧 Anomalib Engine 생성...
+✅ Engine 생성 완료
+
+🎯 AI-VAD 학습 시작 (비디오 시퀀스)...
+💡 학습 과정:
+   1. 이미지 → 비디오 시퀀스 변환
+   2. Feature Extraction: Flow, Region, Pose, Deep features
+   3. Density Update: 정상 특성들을 density estimator에 누적
+   4. Density Fit: 모든 특성으로 분포 모델 학습
+   5. No Backpropagation: 가중치 업데이트 없음!
+  ⚠️ 배치 1 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 2 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 3 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 4 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 5 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 6 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 7 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 8 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 9 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 10 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 11 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 12 실패: amax(): Expected reduction dim 0 to have non-zero size.
+Traceback (most recent call last):
