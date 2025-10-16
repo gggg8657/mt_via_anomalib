@@ -1,10 +1,9 @@
 """
-AI-VAD의 올바른 학습 방법
-Density Estimation 기반 One-Class Learning
+AI-VAD 더미 데이터로 학습 테스트
+실제 이미지 없이 더미 이미지로 AI-VAD 학습 과정 테스트
 """
 
 import os
-import json
 import torch
 import cv2
 import numpy as np
@@ -12,73 +11,65 @@ from pathlib import Path
 from anomalib.models.video import AiVad
 from anomalib.engine import Engine
 from anomalib.data import Folder
-# from anomalib.data.utils import VideoTargetFrame  # 버전 호환성 문제
-import shutil
 
-def create_proper_image_dataset_from_json(json_path="image_segments.json", target_dir="proper_image_dataset"):
-    """JSON에서 정상 프레임들을 이미지로 변환"""
-    print(f"📁 AI-VAD용 이미지 데이터셋 생성: {json_path}")
+def create_dummy_dataset(target_dir="dummy_dataset"):
+    """더미 이미지 데이터셋 생성"""
+    print(f"📁 더미 이미지 데이터셋 생성: {target_dir}")
     
-    # Folder 데이터셋 구조 생성
-    train_dir = Path(target_dir) / "train" / "good"
-    train_dir.mkdir(parents=True, exist_ok=True)
+    # 폴더 생성
+    normal_dir = Path(target_dir) / "train" / "good"
+    normal_dir.mkdir(parents=True, exist_ok=True)
     
-    print(f"  📂 정상 이미지 폴더: {train_dir}")
+    print(f"  📂 더미 이미지 폴더: {normal_dir}")
     
-    # JSON 파일 로드
-    try:
-        with open(json_path, 'r', encoding='utf-8') as f:
-            segments = json.load(f)
-        print(f"  📊 JSON 로드 완료: {len(segments)}개 세그먼트")
-    except Exception as e:
-        print(f"❌ JSON 로드 실패: {e}")
-        return None
+    # 더미 이미지 생성
+    dummy_count = 50  # 50개 더미 이미지
     
-    # 정상 프레임들을 이미지로 복사
-    copied_count = 0
-    normal_count = 0
+    for i in range(dummy_count):
+        # 다양한 패턴의 더미 이미지 생성
+        if i % 4 == 0:
+            # 패턴 1: 단색 배경
+            img = np.ones((224, 224, 3), dtype=np.uint8) * (i * 5 % 255)
+        elif i % 4 == 1:
+            # 패턴 2: 그라데이션
+            img = np.zeros((224, 224, 3), dtype=np.uint8)
+            for y in range(224):
+                img[y, :, 0] = int(255 * y / 224)  # 빨간색 그라데이션
+        elif i % 4 == 2:
+            # 패턴 3: 원형 패턴
+            img = np.zeros((224, 224, 3), dtype=np.uint8)
+            center = (112, 112)
+            cv2.circle(img, center, 50 + i, (0, 255, 0), -1)
+        else:
+            # 패턴 4: 직선 패턴
+            img = np.zeros((224, 224, 3), dtype=np.uint8)
+            for x in range(0, 224, 20):
+                cv2.line(img, (x, 0), (x, 224), (0, 0, 255), 2)
+        
+        # 파일명 생성
+        img_name = f"dummy_normal_{i:03d}.jpg"
+        img_path = normal_dir / img_name
+        
+        # 이미지 저장
+        cv2.imwrite(str(img_path), img)
     
-    for i, segment in enumerate(segments):
-        if segment.get('category') == 'normal' and 'images' in segment:
-            normal_count += 1
-            images = segment['images']
-            
-            # 각 세그먼트에서 프레임들 복사
-            for j, img_path in enumerate(images[:3]):  # 각 세그먼트에서 최대 3개
-                if os.path.exists(img_path):
-                    # 파일명 생성
-                    name = f"normal_{normal_count:03d}_{j:02d}_{Path(img_path).name}"
-                    target_path = train_dir / name
-                    
-                    try:
-                        # 파일 복사
-                        shutil.copy2(img_path, target_path)
-                        copied_count += 1
-                        
-                        if copied_count <= 20:  # 처음 20개만 표시
-                            print(f"    📸 {name}")
-                            
-                    except Exception as e:
-                        print(f"    ⚠️ {img_path} 복사 실패: {e}")
+    print(f"  ✅ 생성된 더미 이미지: {dummy_count}개")
     
-    print(f"  ✅ 정상 세그먼트: {normal_count}개")
-    print(f"  ✅ 복사된 이미지: {copied_count}개")
-    
-    if copied_count == 0:
-        print("❌ 복사된 이미지가 없습니다!")
-        return None
+    # 처음 몇 개 이미지 표시
+    for i in range(min(5, dummy_count)):
+        print(f"    📸 dummy_normal_{i:03d}.jpg")
     
     return str(Path(target_dir).absolute())
 
 def main():
     """메인 함수"""
-    print("🚀 AI-VAD 올바른 학습 방법")
+    print("🚀 AI-VAD 더미 데이터 학습 테스트")
     print("=" * 50)
-    print("💡 핵심 원리:")
-    print("   1. Feature Extraction: Flow, Region, Pose, Deep features")
-    print("   2. Density Estimation: 정상 데이터의 분포 학습")
-    print("   3. One-Class Learning: 정상 데이터만으로 분포 모델링")
-    print("   4. No NN Training: 가중치 학습 없음!")
+    print("💡 목적:")
+    print("   1. AI-VAD 학습 과정 테스트")
+    print("   2. Density Estimation 동작 확인")
+    print("   3. Feature Extraction 테스트")
+    print("   4. 실제 데이터 없이 학습 과정 검증")
     print("=" * 50)
     
     # GPU 설정
@@ -88,11 +79,8 @@ def main():
     if device == "cuda":
         print(f"GPU: {torch.cuda.get_device_name()}")
     
-    # 1. 이미지 데이터셋 생성
-    dataset_root = create_proper_image_dataset_from_json()
-    if dataset_root is None:
-        print("❌ 이미지 데이터셋 생성 실패")
-        return
+    # 1. 더미 데이터셋 생성
+    dataset_root = create_dummy_dataset()
     
     # 2. AI-VAD 모델 생성
     print(f"\n🤖 AI-VAD 모델 생성...")
@@ -149,12 +137,11 @@ def main():
         print(f"❌ Engine 생성 실패: {e}")
         return
     
-    # 5. Folder 데이터 모듈 생성 (이미지 기반)
+    # 5. Folder 데이터 모듈 생성
     print(f"\n📊 Folder 데이터 모듈 생성...")
     try:
-        # Folder 데이터 모듈 사용 (이미지 기반)
         datamodule = Folder(
-            name="proper_images",
+            name="dummy_frames",
             root=dataset_root,
             normal_dir="train/good",
             train_batch_size=1,  # 작은 배치 크기
@@ -168,11 +155,11 @@ def main():
         print(f"❌ Folder 데이터 모듈 생성 실패: {e}")
         return
     
-    # 6. AI-VAD 학습 (올바른 방법)
-    print(f"\n🎯 AI-VAD 학습 시작...")
+    # 6. AI-VAD 학습 (더미 데이터로 테스트)
+    print(f"\n🎯 AI-VAD 학습 시작 (더미 데이터)...")
     print("💡 학습 과정:")
     print("   1. Feature Extraction: Flow, Region, Pose, Deep features")
-    print("   2. Density Update: 정상 특성들을 density estimator에 누적")
+    print("   2. Density Update: 더미 특성들을 density estimator에 누적")
     print("   3. Density Fit: 모든 특성으로 분포 모델 학습")
     print("   4. No Backpropagation: 가중치 업데이트 없음!")
     
@@ -201,14 +188,14 @@ def main():
         return
     
     # 7. 체크포인트 저장
-    checkpoint_path = "aivad_proper_learned.ckpt"
+    checkpoint_path = "aivad_dummy_learned.ckpt"
     try:
         # AI-VAD 모델 상태 저장
         torch.save({
             'state_dict': model.state_dict(),
             'pytorch-lightning_version': '2.0.0',
             'model_class': 'AiVad',
-            'training_type': 'proper_density_estimation',
+            'training_type': 'dummy_density_estimation',
             'total_detections': model.total_detections,
         }, checkpoint_path)
         
@@ -218,12 +205,12 @@ def main():
     except Exception as e:
         print(f"⚠️ 체크포인트 저장 실패: {e}")
     
-    print("\n🎉 AI-VAD 올바른 학습 완료!")
+    print("\n🎉 AI-VAD 더미 데이터 학습 완료!")
     print("💡 학습된 내용:")
-    print("1. 정상 데이터의 Feature 분포 학습")
-    print("2. Density Estimator로 이상 탐지 준비")
-    print("3. UI에서 'aivad_proper_learned.ckpt' 로드하여 테스트")
-    print("4. 비정상 데이터는 분포에서 벗어나 높은 점수")
+    print("1. 더미 데이터의 Feature 분포 학습")
+    print("2. Density Estimator 동작 확인")
+    print("3. AI-VAD 학습 과정 검증 완료")
+    print("4. UI에서 'aivad_dummy_learned.ckpt' 로드하여 테스트")
 
 if __name__ == "__main__":
     main()
