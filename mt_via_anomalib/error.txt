@@ -3743,3 +3743,76 @@ GPU: NVIDIA GeForce RTX 4090
   ⚠️ 배치 11 실패: index 0 is out of bounds for dimension 0 with size 0
   ⚠️ 배치 12 실패: amax(): Expected reduction dim 0 to have non-zero size.
 Traceback (most recent call last):
+
+
+--- ISSUE 19:06 ---
+
+(mt_p310) C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib>python train_aivad_simple.py
+🚀 AI-VAD 간단한 학습 방법
+==================================================
+💡 목적:
+   1. 복잡한 Feature 추출 우회
+   2. 기본 모델 구조 확인
+   3. 사전 훈련된 가중치 활용
+   4. 간단한 학습 과정 테스트
+==================================================
+🖥️ 사용 디바이스: cuda
+GPU: NVIDIA GeForce RTX 4090
+📁 AI-VAD용 간단한 데이터셋 생성: image_segments.json
+  📂 정상 이미지 폴더: simple_dataset\train\good
+  📊 JSON 로드 완료: 144개 세그먼트
+    📸 normal_001_00_frame_20250728-143012_273.jpg
+    📸 normal_001_01_frame_20250728-143012_308.jpg
+    📸 normal_001_02_frame_20250728-143012_340.jpg
+    📸 normal_002_00_frame_20250728-143442_128.jpg
+    📸 normal_002_01_frame_20250728-143442_161.jpg
+    📸 normal_002_02_frame_20250728-143442_194.jpg
+    📸 normal_003_00_frame_20250728-143600_291.jpg
+    📸 normal_003_01_frame_20250728-143600_325.jpg
+    📸 normal_003_02_frame_20250728-143600_360.jpg
+    📸 normal_004_00_frame_20250728-143626_423.jpg
+    📸 normal_004_01_frame_20250728-143626_457.jpg
+    📸 normal_004_02_frame_20250728-143626_490.jpg
+    📸 normal_005_00_frame_20250728-143710_424.jpg
+    📸 normal_005_01_frame_20250728-143710_457.jpg
+    📸 normal_005_02_frame_20250728-143710_488.jpg
+    📸 normal_006_00_frame_20250728-143813_954.jpg
+    📸 normal_006_01_frame_20250728-143813_985.jpg
+    📸 normal_006_02_frame_20250728-143814_019.jpg
+    📸 normal_007_00_frame_20250728-143931_682.jpg
+    📸 normal_007_01_frame_20250728-143931_714.jpg
+  ✅ 정상 세그먼트: 23개
+  ✅ 복사된 이미지: 69개
+
+🤖 AI-VAD 모델 생성...
+✅ AI-VAD 모델 생성 완료
+
+🔄 사전 훈련된 가중치 로드: aivad_proper_checkpoint.ckpt
+✅ 사전 훈련된 가중치 로드 완료
+
+🎯 AI-VAD 간단한 학습 테스트...
+💡 테스트 과정:
+   1. 모델 구조 확인
+   2. 기본 Feature 추출 테스트
+   3. 사전 훈련된 가중치 활용
+   4. 복잡한 Density Estimation 우회
+
+📊 모델 구조 테스트...
+   입력 크기: torch.Size([1, 2, 3, 224, 224])
+   🔍 Flow Extractor 테스트...
+   ✅ Flow 추출 성공: torch.Size([1, 2, 224, 224])
+   🔍 Region Extractor 테스트...
+   ⚠️ 모델 테스트 실패: RegionExtractor.forward() missing 1 required positional argument: 'last_frame'
+   💡 이는 정상적인 현상일 수 있습니다 (복잡한 Feature 추출)
+✅ AI-VAD 간단한 학습 테스트 완료!
+💾 테스트된 모델 저장: aivad_simple_test.ckpt
+📊 파일 크기: 757.8 MB
+
+🎉 AI-VAD 간단한 학습 테스트 완료!
+💡 테스트 결과:
+1. 모델 구조 확인 완료
+2. 사전 훈련된 가중치 로드 완료
+3. 기본 Feature 추출 테스트 완료
+4. UI에서 'aivad_simple_test.ckpt' 로드하여 테스트
+5. 복잡한 Density Estimation은 실제 데이터로 진행 필요
+
