@@ -72,6 +72,7 @@ def main():
     print(f"\n📊 Anomalib Folder 데이터 모듈 생성...")
     try:
         datamodule = Folder(
+            name="custom_video_dataset",
             root=dataset_root,
             normal_dir="train/good",
             train_batch_size=2,
