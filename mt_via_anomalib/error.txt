@@ -4458,3 +4458,142 @@ GPU: NVIDIA GeForce RTX 4090
    ⚠️ 클립 처리 실패: index 0 is out of bounds for dimension 0 with size 0
    ⚠️ 클립 처리 실패: index 0 is out of bounds for dimension 0 with size 0
    ⚠️ 클립 처리 실패: index 0 is out of bounds for dimension 0 with size 0
+
+
+--- ISSUE ---
+
+(mt_p310) C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib>python train_aivad_real_videos.py
+🚀 AI-VAD 실제 비디오 데이터로 학습
+============================================================
+💡 실제 비디오 데이터 사용:
+   1. 실제 비디오 파일들 (56개)
+   2. AI-VAD 원래 방식 (Density Estimation)
+   3. 우리 환경의 실제 객체들
+   4. 높은 Domain 적용성
+============================================================
+🖥️ 사용 디바이스: cuda
+GPU: NVIDIA GeForce RTX 4090
+
+📊 실제 비디오 파일: 56개
+📁 실제 비디오 데이터셋 생성: real_video_dataset
+  📂 정상 비디오 폴더: real_video_dataset\train\normal
+    🎬 normal_000.avi
+    🎬 normal_001.avi
+    🎬 normal_002.avi
+    🎬 normal_003.avi
+    🎬 normal_004.avi
+    🎬 normal_005.avi
+    🎬 normal_006.avi
+    🎬 normal_007.avi
+    🎬 normal_008.avi
+    🎬 normal_009.avi
+  ✅ 복사된 비디오: 56개
+
+🤖 AI-VAD 모델 생성...
+✅ AI-VAD 모델 생성 완료 (GPU: cuda)
+
+🔄 사전 훈련된 가중치 로드: aivad_proper_checkpoint.ckpt
+✅ 사전 훈련된 가중치 로드 완료
+
+🔧 Anomalib Engine 생성...
+✅ Engine 생성 완료
+
+📊 직접적인 비디오 처리 방식 사용...
+💡 Avenue 데이터 모듈 대신 직접 비디오 처리
+✅ 사용 가능한 비디오: 56개
+
+🎯 AI-VAD 직접 학습 시작...
+💡 학습 과정:
+   1. 실제 비디오 파일들 직접 로드
+   2. Feature Extraction: Flow, Region, Pose, Deep features
+   3. Density Update: 정상 특성들을 density estimator에 누적
+   4. Density Fit: 모든 특성으로 분포 모델 학습
+   5. No Backpropagation: 가중치 업데이트 없음!
+   6. 우리 환경의 실제 객체들 학습!
+🔍 모델 디바이스 확인:
+   - 모델 디바이스: cuda:0
+   - 타겟 디바이스: cuda
+
+📹 비디오 처리 중: 1/10
+   파일: normal_000.avi
+   📊 프레임 수: 1802, FPS: 25.0
+   ⚠️ 객체 감지 실패: Region Extractor가 객체를 찾지 못함
+   ✅ 완료: 0개 클립 처리
+
+📹 비디오 처리 중: 2/10
+   파일: normal_001.avi
+   📊 프레임 수: 1674, FPS: 25.0
+   ⚠️ 객체 감지 실패: Region Extractor가 객체를 찾지 못함
+   ✅ 완료: 0개 클립 처리
+
+📹 비디오 처리 중: 3/10
+   파일: normal_002.avi
+   📊 프레임 수: 273, FPS: 25.0
+   ⚠️ AI-VAD 추론 실패: amax(): Expected reduction dim 0 to have non-zero size.
+   ✅ 완료: 0개 클립 처리
+
+📹 비디오 처리 중: 4/10
+   파일: normal_003.avi
+   📊 프레임 수: 198, FPS: 25.0
+   ⚠️ 객체 감지 실패: Region Extractor가 객체를 찾지 못함
+   ✅ 완료: 0개 클립 처리
+
+📹 비디오 처리 중: 5/10
+   파일: normal_004.avi
+   📊 프레임 수: 802, FPS: 25.0
+   ⚠️ 객체 감지 실패: Region Extractor가 객체를 찾지 못함
+   ✅ 완료: 0개 클립 처리
+
+📹 비디오 처리 중: 6/10
+   파일: normal_005.avi
+   📊 프레임 수: 2094, FPS: 25.0
+   ⚠️ 객체 감지 실패: Region Extractor가 객체를 찾지 못함
+   ✅ 완료: 0개 클립 처리
+
+📹 비디오 처리 중: 7/10
+   파일: normal_006.avi
+   📊 프레임 수: 527, FPS: 25.0
+   ⚠️ 객체 감지 실패: Region Extractor가 객체를 찾지 못함
+   ✅ 완료: 0개 클립 처리
+
+📹 비디오 처리 중: 8/10
+   파일: normal_007.avi
+   📊 프레임 수: 511, FPS: 25.0
+   ⚠️ 객체 감지 실패: Region Extractor가 객체를 찾지 못함
+   ✅ 완료: 0개 클립 처리
+
+📹 비디오 처리 중: 9/10
+   파일: normal_008.avi
+   📊 프레임 수: 122, FPS: 25.0
+   ⚠️ 객체 감지 실패: Region Extractor가 객체를 찾지 못함
+   ✅ 완료: 0개 클립 처리
+
+📹 비디오 처리 중: 10/10
+   파일: normal_009.avi
+   📊 프레임 수: 1485, FPS: 25.0
+   ⚠️ AI-VAD 추론 실패: amax(): Expected reduction dim 0 to have non-zero size.
+   ✅ 완료: 0개 클립 처리
+
+📊 전체 처리 결과:
+   - 처리된 비디오: 10개
+   - 처리된 클립: 0개
+   - 총 감지 수: 0개
+⚠️ 감지된 특성이 없어 density estimator 학습을 건너뜁니다.
+💡 해결 방법:
+   1. 비디오에 움직이는 객체가 있는지 확인
+   2. 조명이 충분한지 확인
+   3. 객체가 충분히 큰지 확인 (최소 50x50 픽셀)
+   4. AI-VAD 파라미터를 더 낮춤 (box_score_thresh=0.1)
+✅ AI-VAD 직접 학습 완료!
+💾 학습된 모델 저장: aivad_real_videos_learned.ckpt
+📊 파일 크기: 757.9 MB
+
+🎉 AI-VAD 실제 비디오 학습 완료!
+💡 학습된 내용:
+1. 실제 비디오 파일들로 학습
+2. 우리 환경의 실제 객체들
+3. 높은 Domain 적용성
+4. 정상 데이터의 Feature 분포 학습
+5. Density Estimator로 이상 탐지 준비
+6. UI에서 'aivad_real_videos_learned.ckpt' 로드하여 테스트
+7. 비정상 데이터는 분포에서 벗어나 높은 점수
