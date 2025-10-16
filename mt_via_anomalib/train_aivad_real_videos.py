@@ -145,7 +145,7 @@ def main():
         print("❌ 실제 비디오 데이터셋 생성 실패")
         return
     
-    # 3. AI-VAD 모델 생성 (원래 설정)
+    # 3. AI-VAD 모델 생성 (객체 감지 개선 설정)
     print(f"\n🤖 AI-VAD 모델 생성...")
     try:
         model = AiVad(
@@ -157,6 +157,11 @@ def main():
             n_components_velocity=2,
             n_neighbors_pose=1,
             n_neighbors_deep=1,
+            # 객체 감지 개선 설정
+            box_score_thresh=0.3,  # 낮춤 (0.7 -> 0.3)
+            min_bbox_area=50,      # 낮춤 (100 -> 50)
+            max_bbox_overlap=0.8,  # 높임 (0.65 -> 0.8)
+            foreground_binary_threshold=10,  # 낮춤 (18 -> 10)
         )
         
         # 모델을 GPU로 이동
@@ -298,13 +303,29 @@ def main():
                             
                             # AI-VAD 추론 (학습 모드)
                             with torch.no_grad():
-                                output = model.model(video_clip)
-                            
-                            # 특성 추출 및 density estimator 업데이트
-                            if hasattr(model.model, 'density_estimator'):
-                                # AI-VAD의 내부 특성들을 density estimator에 추가
-                                model.model.density_estimator.update(output)
-                                total_detections += 1
+                                try:
+                                    output = model.model(video_clip)
+                                    
+                                    # 출력 구조 확인
+                                    if isinstance(output, list) and len(output) > 0:
+                                        # 특성 추출 및 density estimator 업데이트
+                                        if hasattr(model.model, 'density_estimator'):
+                                            # AI-VAD의 내부 특성들을 density estimator에 추가
+                                            model.model.density_estimator.update(output)
+                                            total_detections += 1
+                                    else:
+                                        # 출력이 비어있거나 예상과 다름
+                                        if clip_count == 0:  # 첫 번째 클립에서만 출력
+                                            print(f"   ⚠️ AI-VAD 출력이 비어있거나 예상과 다름: {type(output)}")
+                                        
+                                except Exception as e:
+                                    if "index 0 is out of bounds" in str(e):
+                                        # Region Extractor에서 객체 감지 실패
+                                        if clip_count == 0:  # 첫 번째 클립에서만 출력
+                                            print(f"   ⚠️ 객체 감지 실패: Region Extractor가 객체를 찾지 못함")
+                                    else:
+                                        print(f"   ⚠️ AI-VAD 추론 실패: {e}")
+                                    continue
                             
                             clip_count += 1
                             total_clips_processed += 1
@@ -313,7 +334,9 @@ def main():
                                 print(f"   ✅ 처리된 클립: {clip_count}")
                             
                         except Exception as e:
-                            print(f"   ⚠️ 클립 처리 실패: {e}")
+                            # 첫 번째 클립에서만 상세 에러 출력
+                            if clip_count == 0:
+                                print(f"   ⚠️ 클립 처리 실패: {e}")
                         
                         # 버퍼에서 첫 번째 프레임 제거
                         frame_buffer.pop(0)
@@ -337,6 +360,11 @@ def main():
             print("✅ Density Estimator 학습 완료")
         else:
             print("⚠️ 감지된 특성이 없어 density estimator 학습을 건너뜁니다.")
+            print("💡 해결 방법:")
+            print("   1. 비디오에 움직이는 객체가 있는지 확인")
+            print("   2. 조명이 충분한지 확인")
+            print("   3. 객체가 충분히 큰지 확인 (최소 50x50 픽셀)")
+            print("   4. AI-VAD 파라미터를 더 낮춤 (box_score_thresh=0.1)")
         
         print("✅ AI-VAD 직접 학습 완료!")
         
