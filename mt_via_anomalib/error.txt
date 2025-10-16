@@ -2754,3 +2754,73 @@ Traceback (most recent call last):
   File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\engine\engine.py", line 270, in _setup_workspace
     dataset_name = datamodule.name
 AttributeError: 'CustomVideoDataModule' object has no attribute 'name'
+
+--- ISSUE 2025.10.16. ---
+(mt_p310) C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib>python train_aivad_finetune.py
+🚀 AI-VAD 모델 파인튜닝 시작
+==================================================
+🖥️ 사용 디바이스: cuda
+GPU: NVIDIA GeForce RTX 4090
+GPU 메모리: 24.0 GB
+📁 훈련할 비디오 파일: 56개
+  1. normal_0.avi
+  2. normal_1.avi
+  3. normal_2.avi
+  ... 외 53개
+
+📊 데이터 모듈 설정...
+✅ Avenue 데이터 모듈 사용
+
+🤖 사전 훈련된 모델 로드...
+🔄 사전 훈련된 모델 로드: aivad_proper_checkpoint.ckpt
+INFO:anomalib.models.components.base.anomalib_module:Initializing AiVad model.
+✅ 사전 훈련된 가중치 로드 완료
+
+⚙️ 파인튜닝 설정...
+⚙️ 파인튜닝 옵티마이저 설정 (LR: 1e-05)
+
+🔧 학습 엔진 설정...
+
+🎯 파인튜닝 시작!
+📊 실제 비디오 데이터로 파인튜닝 시작...
+INFO:anomalib.engine.engine:Overriding gradient_clip_val from 1.0 with 0 for AiVad
+INFO:anomalib.engine.engine:Overriding max_epochs from 5 with 1 for AiVad
+Using 16bit Automatic Mixed Precision (AMP)
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+HPU available: False, using: 0 HPUs
+You are using a CUDA device ('NVIDIA GeForce RTX 4090') that has Tensor Cores. To properly utilize them, you should set `torch.set_float32_matmul_precision('medium' | 'high')` which will trade-off precision for performance. For more details, read https://pytorch.org/docs/stable/generated/torch.set_float32_matmul_precision.html#torch.set_float32_matmul_precision
+INFO:anomalib.data.datamodules.video.avenue:Found the dataset.
+❌ 파인튜닝 중 오류: cannot set a frame with no defined index and a scalar
+Traceback (most recent call last):
+  File "C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib\train_aivad_finetune.py", line 276, in main
+    engine.fit(model=model, datamodule=datamodule)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\engine\engine.py", line 412, in fit
+    self.trainer.fit(model, train_dataloaders, val_dataloaders, datamodule, ckpt_path)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\trainer\trainer.py", line 560, in fit
+    call._call_and_handle_interrupt(
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\trainer\call.py", line 49, in _call_and_handle_interrupt
+    return trainer_fn(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\trainer\trainer.py", line 598, in _fit_impl
+    self._run(model, ckpt_path=ckpt_path)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\trainer\trainer.py", line 973, in _run
+    call._call_setup_hook(self)  # allow user to set up LightningModule in accelerator environment
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\trainer\call.py", line 108, in _call_setup_hook
+    _call_lightning_datamodule_hook(trainer, "setup", stage=fn)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\trainer\call.py", line 199, in _call_lightning_datamodule_hook
+    return fn(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\data\datamodules\base\image.py", line 154, in setup
+    self._setup(stage)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\data\datamodules\video\avenue.py", line 178, in _setup
+    self.train_data = AvenueDataset(
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\data\datasets\video\avenue.py", line 115, in __init__
+    self.samples = make_avenue_dataset(self.root, self.gt_dir, self.split)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\data\datasets\video\avenue.py", line 164, in make_avenue_dataset
+    samples.loc[samples.folder == "training_videos", "split"] = "train"
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\pandas\core\indexing.py", line 912, in __setitem__
+    iloc._setitem_with_indexer(indexer, value, self.name)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\pandas\core\indexing.py", line 1848, in _setitem_with_indexer
+    raise ValueError(
+ValueError: cannot set a frame with no defined index and a scalar
+
+
