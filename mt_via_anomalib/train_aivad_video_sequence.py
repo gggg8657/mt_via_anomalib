@@ -244,14 +244,54 @@ def main():
                     # AI-VAD 모델 호출
                     output = model.model(video_tensor)
                     
-                    # 간단한 손실 계산 (정상 데이터이므로 낮은 점수 목표)
-                    if hasattr(output, 'pred_score'):
+                    # AI-VAD 출력 구조 디버깅
+                    print(f"    🔍 Output type: {type(output)}")
+                    if hasattr(output, '__dict__'):
+                        print(f"    🔍 Output attributes: {list(output.__dict__.keys())}")
+                    elif isinstance(output, (list, tuple)):
+                        print(f"    🔍 Output length: {len(output)}")
+                        for i, item in enumerate(output):
+                            print(f"      [{i}] Type: {type(item)}, Shape: {getattr(item, 'shape', 'No shape')}")
+                    
+                    # 실제 손실 계산
+                    loss = None
+                    
+                    # Case 1: output이 dict 형태인 경우
+                    if isinstance(output, dict):
+                        if 'pred_score' in output:
+                            pred_score = output['pred_score'].mean()
+                            loss = torch.abs(pred_score - 0.1)
+                            print(f"    📊 Dict pred_score: {pred_score.item():.4f}")
+                        elif 'anomaly_score' in output:
+                            anomaly_score = output['anomaly_score'].mean()
+                            loss = torch.abs(anomaly_score - 0.1)
+                            print(f"    📊 Dict anomaly_score: {anomaly_score.item():.4f}")
+                    
+                    # Case 2: output이 tensor인 경우
+                    elif torch.is_tensor(output):
+                        loss = torch.abs(output.mean() - 0.1)
+                        print(f"    📊 Tensor output: {output.mean().item():.4f}")
+                    
+                    # Case 3: output이 list/tuple인 경우
+                    elif isinstance(output, (list, tuple)) and len(output) > 0:
+                        first_item = output[0]
+                        if torch.is_tensor(first_item):
+                            loss = torch.abs(first_item.mean() - 0.1)
+                            print(f"    📊 List[0] tensor: {first_item.mean().item():.4f}")
+                    
+                    # Case 4: output이 객체인 경우
+                    elif hasattr(output, 'pred_score'):
                         pred_score = output.pred_score.mean()
-                        loss = torch.abs(pred_score - 0.1)  # 0.1에 가까워지도록
-                    else:
-                        # 더미 손실 (gradient 활성화)
-                        dummy_loss = torch.tensor(0.1, device=device, requires_grad=True)
-                        loss = dummy_loss
+                        loss = torch.abs(pred_score - 0.1)
+                        print(f"    📊 Object pred_score: {pred_score.item():.4f}")
+                    
+                    # Case 5: 모든 경우 실패시 더미 손실
+                    if loss is None:
+                        print(f"    ⚠️ 알 수 없는 출력 형태, 더미 손실 사용")
+                        # 실제 gradient가 있는 더미 손실
+                        video_mean = video_tensor.mean()
+                        loss = torch.abs(video_mean - 0.5)  # 이미지 평균값 기반
+                        print(f"    📊 더미 손실 (이미지 평균 기반): {loss.item():.4f}")
                     
                     # 역전파
                     loss.backward()
