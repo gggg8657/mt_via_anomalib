@@ -2997,3 +2997,26 @@ Traceback (most recent call last):
     return torch.max_pool2d(input, kernel_size, stride, padding, dilation, ceil_mode)
 KeyboardInterrupt
 ^C
+
+
+
+--- ISSUE 2025.10.16. ---
+
+(mt_p310) C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib>python train_aivad_official.py
+🚀 Anomalib 공식 방법으로 AI-VAD 파인튜닝
+==================================================
+🖥️ 사용 디바이스: cuda
+GPU: NVIDIA GeForce RTX 4090
+
+📁 훈련할 비디오 파일: 56개
+📁 비디오 폴더 구조 준비: custom_video_dataset
+  📂 정상 비디오 폴더: custom_video_dataset\train\good
+    📹 normal_000_normal_0.avi
+    📹 normal_001_normal_1.avi
+    📹 normal_002_normal_2.avi
+    📹 normal_003_normal_3.avi
+    📹 normal_004_normal_4.avi
+  ✅ 56개 비디오 파일 준비 완료
+
+📊 Anomalib Folder 데이터 모듈 생성...
+❌ Folder 데이터 모듈 생성 실패: Folder.__init__() got an unexpected keyword argument 'task'
