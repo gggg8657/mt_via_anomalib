@@ -4011,3 +4011,86 @@ GPU: NVIDIA GeForce RTX 4090
 4. Density Estimator로 이상 탐지 준비
 5. UI에서 'aivad_correct_learned.ckpt' 로드하여 테스트
 6. 비정상 데이터는 분포에서 벗어나 높은 점수
+
+--- ISSUE 19:27 ---
+
+(mt_p310) C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib>python train_aivad_real_videos.py
+🚀 AI-VAD 실제 비디오 데이터로 학습
+============================================================
+💡 실제 비디오 데이터 사용:
+   1. 실제 비디오 파일들 (56개)
+   2. AI-VAD 원래 방식 (Density Estimation)
+   3. 우리 환경의 실제 객체들
+   4. 높은 Domain 적용성
+============================================================
+🖥️ 사용 디바이스: cuda
+GPU: NVIDIA GeForce RTX 4090
+
+📊 실제 비디오 파일: 56개
+📁 실제 비디오 데이터셋 생성: real_video_dataset
+  📂 정상 비디오 폴더: real_video_dataset\train\normal
+    🎬 normal_000.avi
+    🎬 normal_001.avi
+    🎬 normal_002.avi
+    🎬 normal_003.avi
+    🎬 normal_004.avi
+    🎬 normal_005.avi
+    🎬 normal_006.avi
+    🎬 normal_007.avi
+    🎬 normal_008.avi
+    🎬 normal_009.avi
+  ✅ 복사된 비디오: 56개
+
+🤖 AI-VAD 모델 생성...
+✅ AI-VAD 모델 생성 완료
+
+🔄 사전 훈련된 가중치 로드: aivad_proper_checkpoint.ckpt
+✅ 사전 훈련된 가중치 로드 완료
+
+🔧 Anomalib Engine 생성...
+✅ Engine 생성 완료
+
+📊 Avenue 데이터 모듈 생성...
+✅ Avenue 데이터 모듈 생성 완료
+
+🎯 AI-VAD 학습 시작 (실제 비디오)...
+💡 학습 과정:
+   1. 실제 비디오 파일들 사용
+   2. Feature Extraction: Flow, Region, Pose, Deep features
+   3. Density Update: 정상 특성들을 density estimator에 누적
+   4. Density Fit: 모든 특성으로 분포 모델 학습
+   5. No Backpropagation: 가중치 업데이트 없음!
+   6. 우리 환경의 실제 객체들 학습!
+GPU available: True (cuda), used: True
+TPU available: False, using: 0 TPU cores
+HPU available: False, using: 0 HPUs
+You are using a CUDA device ('NVIDIA GeForce RTX 4090') that has Tensor Cores. To properly utilize them, you should set `torch.set_float32_matmul_precision('medium' | 'high')` which will trade-off precision for performance. For more details, read https://pytorch.org/docs/stable/generated/torch.set_float32_matmul_precision.html#torch.set_float32_matmul_precision
+0it [00:00, ?it/s]
+0it [00:00, ?it/s]
+❌ AI-VAD 학습 실패: list index out of range
+Traceback (most recent call last):
+  File "C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib\train_aivad_real_videos.py", line 235, in main
+    engine.fit(model=model, datamodule=datamodule)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\engine\engine.py", line 412, in fit
+    self.trainer.fit(model, train_dataloaders, val_dataloaders, datamodule, ckpt_path)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\trainer\trainer.py", line 560, in fit
+    call._call_and_handle_interrupt(
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\trainer\call.py", line 49, in _call_and_handle_interrupt
+    return trainer_fn(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\trainer\trainer.py", line 598, in _fit_impl
+    self._run(model, ckpt_path=ckpt_path)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\trainer\trainer.py", line 973, in _run
+    call._call_setup_hook(self)  # allow user to set up LightningModule in accelerator environment
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\trainer\call.py", line 108, in _call_setup_hook
+    _call_lightning_datamodule_hook(trainer, "setup", stage=fn)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\lightning\pytorch\trainer\call.py", line 199, in _call_lightning_datamodule_hook
+    return fn(*args, **kwargs)
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\data\datamodules\base\image.py", line 161, in setup
+    self._update_augmentations()
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\data\datamodules\base\image.py", line 170, in _update_augmentations
+    if subset:
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\data\datasets\base\video.py", line 117, in __len__
+    return self.indexer.num_clips()
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torchvision\datasets\video_utils.py", line 263, in num_clips
+    return self.cumulative_sizes[-1]
+IndexError: list index out of range
