@@ -220,13 +220,15 @@ def main():
         optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
         
         # 훈련 루프
-        for epoch in range(2):  # 2 에포크만
-            print(f"\n📈 Epoch {epoch + 1}/2")
+        for epoch in range(10):  # 10 에포크로 증가
+            print(f"\n📈 Epoch {epoch + 1}/10")
             
             total_loss = 0
+            batch_count = 0
             
             for batch_idx, batch in enumerate(dataloader):
-                if batch_idx >= 5:  # 5배치만 훈련
+                # 더 많은 배치 훈련 (전체 데이터 사용)
+                if batch_idx >= len(dataloader):  # 전체 배치 사용
                     break
                 
                 # 데이터를 GPU로 이동
@@ -256,15 +258,21 @@ def main():
                     optimizer.step()
                     
                     total_loss += loss.item()
+                    batch_count += 1
                     
-                    print(f"  Batch {batch_idx + 1}: Loss = {loss.item():.4f}")
+                    # 진행률 표시 (10배치마다)
+                    if batch_idx % 10 == 0:
+                        print(f"  Batch {batch_idx + 1}/{len(dataloader)}: Loss = {loss.item():.4f}")
                     
                 except Exception as e:
                     print(f"  ⚠️ Batch {batch_idx + 1} 실패: {e}")
                     continue
             
-            avg_loss = total_loss / min(5, len(dataloader))
-            print(f"  📊 평균 손실: {avg_loss:.4f}")
+            if batch_count > 0:
+                avg_loss = total_loss / batch_count
+                print(f"  📊 평균 손실: {avg_loss:.4f} (총 {batch_count}개 배치)")
+            else:
+                print(f"  ⚠️ 성공한 배치가 없습니다.")
         
         print("✅ 파인튜닝 완료!")
         
