@@ -1,6 +1,6 @@
 """
-AI-VAD의 올바른 학습 방법
-Density Estimation 기반 One-Class Learning
+AI-VAD의 올바른 학습 방법 (최종 버전)
+image_segments.json의 이미지들을 사용하여 AI-VAD 학습
 """
 
 import os
@@ -11,19 +11,18 @@ import numpy as np
 from pathlib import Path
 from anomalib.models.video import AiVad
 from anomalib.engine import Engine
-from anomalib.data import Avenue
-# from anomalib.data.utils import VideoTargetFrame  # 버전 호환성 문제
+from anomalib.data import Folder
 import shutil
 
-def create_proper_video_dataset_from_json(json_path="image_segments.json", target_dir="proper_video_dataset"):
-    """JSON에서 정상 프레임들을 비디오 시퀀스로 변환"""
-    print(f"📁 AI-VAD용 비디오 시퀀스 생성: {json_path}")
+def create_final_dataset_from_json(json_path="image_segments.json", target_dir="final_dataset"):
+    """JSON에서 정상 프레임들을 최종 데이터셋으로 변환"""
+    print(f"📁 AI-VAD용 최종 데이터셋 생성: {json_path}")
     
-    # Avenue 데이터셋 구조 생성
-    train_dir = Path(target_dir) / "train" / "normal"
-    train_dir.mkdir(parents=True, exist_ok=True)
+    # 폴더 생성
+    normal_dir = Path(target_dir) / "train" / "good"
+    normal_dir.mkdir(parents=True, exist_ok=True)
     
-    print(f"  📂 정상 비디오 폴더: {train_dir}")
+    print(f"  📂 정상 이미지 폴더: {normal_dir}")
     
     # JSON 파일 로드
     try:
@@ -34,58 +33,47 @@ def create_proper_video_dataset_from_json(json_path="image_segments.json", targe
         print(f"❌ JSON 로드 실패: {e}")
         return None
     
-    # 정상 프레임들을 비디오로 변환
-    video_count = 0
+    # 정상 프레임들 추출
+    copied_count = 0
+    normal_count = 0
     
     for i, segment in enumerate(segments):
         if segment.get('category') == 'normal' and 'images' in segment:
+            normal_count += 1
             images = segment['images']
             
-            # 각 세그먼트에서 연속된 프레임들로 비디오 생성
-            if len(images) >= 2:
-                video_count += 1
+            # 각 세그먼트에서 연속된 프레임들 사용
+            for j in range(min(3, len(images) - 1)):  # 각 세그먼트에서 최대 3개 시퀀스
+                img_path = images[j]
                 
-                # 비디오 파일명 생성
-                video_name = f"normal_{video_count:03d}.mp4"
-                video_path = train_dir / video_name
-                
-                try:
-                    # 첫 번째 프레임으로 비디오 정보 파악
-                    first_frame = cv2.imread(images[0])
-                    if first_frame is not None:
-                        height, width = first_frame.shape[:2]
+                if os.path.exists(img_path):
+                    # 파일명 생성 (더 간단하게)
+                    name = f"normal_{normal_count:03d}_{j:02d}_{Path(img_path).name}"
+                    target_path = normal_dir / name
+                    
+                    try:
+                        # 파일 복사
+                        shutil.copy2(img_path, target_path)
+                        copied_count += 1
                         
-                        # 비디오 라이터 생성
-                        fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-                        out = cv2.VideoWriter(str(video_path), fourcc, 10.0, (width, height))
-                        
-                        # 프레임들을 비디오로 추가
-                        for img_path in images[:10]:  # 최대 10프레임
-                            frame = cv2.imread(img_path)
-                            if frame is not None:
-                                out.write(frame)
-                        
-                        out.release()
-                        
-                        if video_count <= 5:  # 처음 5개만 표시
-                            print(f"    🎬 {video_name} ({len(images)}프레임)")
-                        
-                except Exception as e:
-                    print(f"    ⚠️ {video_name} 생성 실패: {e}")
-                    if os.path.exists(video_path):
-                        os.remove(video_path)
+                        if copied_count <= 20:  # 처음 20개만 표시
+                            print(f"    📸 {name}")
+                            
+                    except Exception as e:
+                        print(f"    ⚠️ {img_path} 복사 실패: {e}")
     
-    print(f"  ✅ 생성된 비디오: {video_count}개")
+    print(f"  ✅ 정상 세그먼트: {normal_count}개")
+    print(f"  ✅ 복사된 이미지: {copied_count}개")
     
-    if video_count == 0:
-        print("❌ 생성된 비디오가 없습니다!")
+    if copied_count == 0:
+        print("❌ 복사된 이미지가 없습니다!")
         return None
     
     return str(Path(target_dir).absolute())
 
 def main():
     """메인 함수"""
-    print("🚀 AI-VAD 올바른 학습 방법")
+    print("🚀 AI-VAD 올바른 학습 방법 (최종 버전)")
     print("=" * 50)
     print("💡 핵심 원리:")
     print("   1. Feature Extraction: Flow, Region, Pose, Deep features")
@@ -101,10 +89,10 @@ def main():
     if device == "cuda":
         print(f"GPU: {torch.cuda.get_device_name()}")
     
-    # 1. 비디오 데이터셋 생성
-    dataset_root = create_proper_video_dataset_from_json()
+    # 1. 최종 데이터셋 생성
+    dataset_root = create_final_dataset_from_json()
     if dataset_root is None:
-        print("❌ 비디오 데이터셋 생성 실패")
+        print("❌ 최종 데이터셋 생성 실패")
         return
     
     # 2. AI-VAD 모델 생성
@@ -162,24 +150,22 @@ def main():
         print(f"❌ Engine 생성 실패: {e}")
         return
     
-    # 5. 커스텀 데이터로더 생성 (비디오 파일 직접 처리)
-    print(f"\n📊 커스텀 비디오 데이터로더 생성...")
+    # 5. Folder 데이터 모듈 생성
+    print(f"\n📊 Folder 데이터 모듈 생성...")
     try:
-        # Avenue 데이터 모듈 사용 (AI-VAD 표준)
-        datamodule = Avenue(
+        datamodule = Folder(
+            name="final_frames",
             root=dataset_root,
-            clip_length_in_frames=2,  # AI-VAD 표준
-            frames_between_clips=1,
+            normal_dir="train/good",
             train_batch_size=1,  # 작은 배치 크기
             eval_batch_size=1,
             num_workers=0,
         )
         
-        print("✅ 커스텀 데이터로더 생성 완료")
+        print("✅ Folder 데이터 모듈 생성 완료")
         
     except Exception as e:
-        print(f"❌ 커스텀 데이터로더 생성 실패: {e}")
-        print("💡 Avenue 데이터셋 구조가 필요합니다.")
+        print(f"❌ Folder 데이터 모듈 생성 실패: {e}")
         return
     
     # 6. AI-VAD 학습 (올바른 방법)
@@ -215,14 +201,14 @@ def main():
         return
     
     # 7. 체크포인트 저장
-    checkpoint_path = "aivad_proper_learned.ckpt"
+    checkpoint_path = "aivad_final_learned.ckpt"
     try:
         # AI-VAD 모델 상태 저장
         torch.save({
             'state_dict': model.state_dict(),
             'pytorch-lightning_version': '2.0.0',
             'model_class': 'AiVad',
-            'training_type': 'proper_density_estimation',
+            'training_type': 'final_density_estimation',
             'total_detections': model.total_detections,
         }, checkpoint_path)
         
@@ -236,7 +222,7 @@ def main():
     print("💡 학습된 내용:")
     print("1. 정상 데이터의 Feature 분포 학습")
     print("2. Density Estimator로 이상 탐지 준비")
-    print("3. UI에서 'aivad_proper_learned.ckpt' 로드하여 테스트")
+    print("3. UI에서 'aivad_final_learned.ckpt' 로드하여 테스트")
     print("4. 비정상 데이터는 분포에서 벗어나 높은 점수")
 
 if __name__ == "__main__":
