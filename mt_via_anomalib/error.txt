@@ -2991,7 +2991,7 @@ Traceback (most recent call last):
     components = connected_components(image, num_iterations=num_iterations)
   File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\kornia\contrib\connected_components.py", line 73, in connected_components
     out = F.max_pool2d(out, kernel_size=3, stride=1, padding=1)
-  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\_jit_internal.py", line 622, in fn
+  File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\_jit_internal.py", line 622, in fn햣 
     return if_false(*args, **kwargs)
   File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\nn\functional.py", line 830, in _max_pool2d
     return torch.max_pool2d(input, kernel_size, stride, padding, dilation, ceil_mode)

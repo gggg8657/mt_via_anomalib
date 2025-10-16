@@ -72,15 +72,11 @@ def main():
     print(f"\n📊 Anomalib Folder 데이터 모듈 생성...")
     try:
         datamodule = Folder(
-            name="custom_video_dataset",
             root=dataset_root,
             normal_dir="train/good",
-            test_split_mode=TestSplitMode.SYNTHETIC,  # 정상 데이터만으로 합성 이상 생성
-            task="classification",  # 분류 작업
             train_batch_size=2,
             eval_batch_size=2,
-            num_workers=0,  # Windows 호환성
-            image_size=(224, 224),  # AI-VAD 입력 크기
+            num_workers=0,
         )
         
         print("✅ Folder 데이터 모듈 생성 완료")
@@ -117,7 +113,6 @@ def main():
     print(f"\n🔧 Anomalib Engine 생성...")
     try:
         engine = Engine(
-            task="classification",  # 분류 작업 명시
             devices=1 if device == "cuda" else "auto",
             accelerator="gpu" if device == "cuda" else "cpu",
             precision="16-mixed" if device == "cuda" else "32",
