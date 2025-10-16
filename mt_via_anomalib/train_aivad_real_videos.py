@@ -158,7 +158,13 @@ def main():
             n_neighbors_pose=1,
             n_neighbors_deep=1,
         )
-        print("✅ AI-VAD 모델 생성 완료")
+        
+        # 모델을 GPU로 이동
+        if device == "cuda":
+            model = model.to(device)
+            print(f"✅ AI-VAD 모델 생성 완료 (GPU: {device})")
+        else:
+            print("✅ AI-VAD 모델 생성 완료 (CPU)")
         
     except Exception as e:
         print(f"❌ AI-VAD 모델 생성 실패: {e}")
@@ -169,9 +175,12 @@ def main():
     if os.path.exists(checkpoint_path):
         print(f"\n🔄 사전 훈련된 가중치 로드: {checkpoint_path}")
         try:
-            checkpoint = torch.load(checkpoint_path, weights_only=False)
+            checkpoint = torch.load(checkpoint_path, weights_only=False, map_location=device)
             if 'state_dict' in checkpoint:
                 model.load_state_dict(checkpoint['state_dict'], strict=False)
+                # 가중치 로드 후에도 모델을 GPU로 이동
+                if device == "cuda":
+                    model = model.to(device)
                 print("✅ 사전 훈련된 가중치 로드 완료")
             else:
                 print("⚠️ state_dict가 없습니다.")
@@ -232,6 +241,15 @@ def main():
         # 직접적인 비디오 처리 및 AI-VAD 학습
         model.model.eval()  # 평가 모드로 설정
         
+        # 모델이 GPU에 있는지 확인
+        print(f"🔍 모델 디바이스 확인:")
+        print(f"   - 모델 디바이스: {next(model.model.parameters()).device}")
+        print(f"   - 타겟 디바이스: {device}")
+        
+        if device == "cuda" and next(model.model.parameters()).device.type != "cuda":
+            print("⚠️ 모델을 GPU로 이동 중...")
+            model.model = model.model.to(device)
+        
         total_clips_processed = 0
         total_detections = 0
         
@@ -272,7 +290,11 @@ def main():
                     if len(frame_buffer) == 2:
                         try:
                             # 비디오 클립 생성 [2, 3, 224, 224]
-                            video_clip = torch.stack(frame_buffer).unsqueeze(0).to(device)  # [1, 2, 3, 224, 224]
+                            video_clip = torch.stack(frame_buffer).unsqueeze(0)  # [1, 2, 3, 224, 224]
+                            
+                            # 디바이스 확인 및 이동
+                            if device == "cuda":
+                                video_clip = video_clip.to(device)
                             
                             # AI-VAD 추론 (학습 모드)
                             with torch.no_grad():
