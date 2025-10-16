@@ -3816,3 +3816,198 @@ GPU: NVIDIA GeForce RTX 4090
 4. UI에서 'aivad_simple_test.ckpt' 로드하여 테스트
 5. 복잡한 Density Estimation은 실제 데이터로 진행 필요
 
+--- ISSUE 19:11 ---
+
+(mt_p310) C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib>python train_aivad_correct.py
+🚀 AI-VAD 올바른 학습 방법 (최종 정정 버전)
+============================================================
+💡 AI-VAD 원래 방식:
+   1. Feature Extraction: Flow, Region, Pose, Deep features
+   2. Density Estimation: 정상 데이터의 분포 학습
+   3. One-Class Learning: 정상 데이터만으로 분포 모델링
+   4. No NN Training: 가중치 학습 없음!
+   5. 우리 데이터 사용: Domain 적용성 향상
+============================================================
+🖥️ 사용 디바이스: cuda
+GPU: NVIDIA GeForce RTX 4090
+📁 AI-VAD용 올바른 데이터셋 생성: image_segments.json
+  📂 정상 이미지 폴더: correct_dataset\train\good
+  📊 JSON 로드 완료: 144개 세그먼트
+    📸 normal_001_00_frame_20250728-143012_273.jpg
+    📸 normal_001_01_frame_20250728-143012_308.jpg
+    📸 normal_001_02_frame_20250728-143012_340.jpg
+    📸 normal_001_03_frame_20250728-143012_373.jpg
+    📸 normal_001_04_frame_20250728-143012_408.jpg
+    📸 normal_002_00_frame_20250728-143442_128.jpg
+    📸 normal_002_01_frame_20250728-143442_161.jpg
+    📸 normal_002_02_frame_20250728-143442_194.jpg
+    📸 normal_002_03_frame_20250728-143442_228.jpg
+    📸 normal_002_04_frame_20250728-143442_261.jpg
+    📸 normal_003_00_frame_20250728-143600_291.jpg
+    📸 normal_003_01_frame_20250728-143600_325.jpg
+    📸 normal_003_02_frame_20250728-143600_360.jpg
+    📸 normal_003_03_frame_20250728-143600_391.jpg
+    📸 normal_003_04_frame_20250728-143600_425.jpg
+    📸 normal_004_00_frame_20250728-143626_423.jpg
+    📸 normal_004_01_frame_20250728-143626_457.jpg
+    📸 normal_004_02_frame_20250728-143626_490.jpg
+    📸 normal_004_03_frame_20250728-143626_526.jpg
+    📸 normal_004_04_frame_20250728-143626_557.jpg
+  ✅ 정상 세그먼트: 23개
+  ✅ 복사된 이미지: 115개
+
+🤖 AI-VAD 모델 생성...
+✅ AI-VAD 모델 생성 완료
+
+🔄 사전 훈련된 가중치 로드: aivad_proper_checkpoint.ckpt
+✅ 사전 훈련된 가중치 로드 완료
+
+🔧 Anomalib Engine 생성...
+✅ Engine 생성 완료
+
+📊 비디오 시퀀스 데이터셋 생성...
+📸 총 115개 이미지 발견
+🎬 114개 비디오 시퀀스 생성
+✅ 비디오 시퀀스 데이터셋 생성 완료
+   📊 배치 크기: 1
+   📊 총 배치 수: 114
+
+🎯 AI-VAD 학습 시작 (원래 방식)...
+💡 학습 과정:
+   1. 이미지 → 비디오 시퀀스 변환
+   2. Feature Extraction: Flow, Region, Pose, Deep features
+   3. Density Update: 정상 특성들을 density estimator에 누적
+   4. Density Fit: 모든 특성으로 분포 모델 학습
+   5. No Backpropagation: 가중치 업데이트 없음!
+   6. 우리 데이터 사용: Domain 적용성 향상!
+  ⚠️ 배치 1 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 2 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 3 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 4 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 5 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 6 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 7 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 8 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 9 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 10 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 11 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 12 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 13 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 14 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 15 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 16 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 17 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 18 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 19 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 20 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 21 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 22 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 23 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 24 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 25 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 26 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 27 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 28 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 29 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 30 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 31 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 32 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 33 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 34 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 35 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 36 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 37 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 38 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 39 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 40 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 41 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 42 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 43 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 44 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 45 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 46 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 47 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 48 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 49 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 50 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 51 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 52 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 53 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 54 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 55 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 56 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 57 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 58 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 59 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 60 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 61 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 62 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 63 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 64 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 65 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 66 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 67 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 68 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 69 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 70 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 71 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 72 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 73 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 74 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 75 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 76 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 77 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 78 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 79 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 80 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 81 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 82 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 83 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 84 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 85 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 86 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 87 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 88 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 89 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 90 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 91 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 92 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 93 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 94 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 95 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 96 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 97 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 98 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 99 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 100 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 101 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 102 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 103 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 104 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 105 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 106 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 107 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 108 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 109 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 110 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 111 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 112 실패: amax(): Expected reduction dim 0 to have non-zero size.
+  ⚠️ 배치 113 실패: index 0 is out of bounds for dimension 0 with size 0
+  ⚠️ 배치 114 실패: index 0 is out of bounds for dimension 0 with size 0
+✅ AI-VAD 학습 완료!
+📊 Density Estimator 상태:
+   - 성공한 배치: 0/114
+   - 총 감지 수: 0
+⚠️ 감지된 영역이 없습니다.
+💡 이는 정상적인 현상일 수 있습니다 (복잡한 객체 감지)
+💾 학습된 모델 저장: aivad_correct_learned.ckpt
+📊 파일 크기: 757.9 MB
+
+🎉 AI-VAD 올바른 학습 완료!
+💡 학습된 내용:
+1. 우리 데이터로 Domain 적용성 향상
+2. 이미지 → 비디오 시퀀스 변환
+3. 정상 데이터의 Feature 분포 학습
+4. Density Estimator로 이상 탐지 준비
+5. UI에서 'aivad_correct_learned.ckpt' 로드하여 테스트
+6. 비정상 데이터는 분포에서 벗어나 높은 점수
