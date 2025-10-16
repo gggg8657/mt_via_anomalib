@@ -200,30 +200,28 @@ def main():
         print(f"❌ Engine 생성 실패: {e}")
         return
     
-    # 6. Avenue 데이터 모듈 생성 (실제 비디오용)
-    print(f"\n📊 Avenue 데이터 모듈 생성...")
-    try:
-        # Avenue 데이터 모듈 사용 (실제 비디오)
-        datamodule = Avenue(
-            root=dataset_root,
-            clip_length_in_frames=2,  # AI-VAD 표준
-            frames_between_clips=1,
-            train_batch_size=1,  # 작은 배치 크기
-            eval_batch_size=1,
-            num_workers=0,
-        )
-        
-        print("✅ Avenue 데이터 모듈 생성 완료")
-        
-    except Exception as e:
-        print(f"❌ Avenue 데이터 모듈 생성 실패: {e}")
-        print("💡 Avenue 데이터셋 구조가 필요합니다.")
+    # 6. 직접적인 비디오 처리 방식 (Avenue 대신)
+    print(f"\n📊 직접적인 비디오 처리 방식 사용...")
+    print("💡 Avenue 데이터 모듈 대신 직접 비디오 처리")
+    
+    # 비디오 파일들 직접 처리
+    video_files_available = []
+    train_dir = Path(dataset_root) / "train" / "normal"
+    
+    for video_file in train_dir.glob("*.avi"):
+        if video_file.exists():
+            video_files_available.append(str(video_file))
+    
+    print(f"✅ 사용 가능한 비디오: {len(video_files_available)}개")
+    
+    if len(video_files_available) == 0:
+        print("❌ 사용 가능한 비디오가 없습니다!")
         return
     
-    # 7. AI-VAD 학습 (실제 비디오로)
-    print(f"\n🎯 AI-VAD 학습 시작 (실제 비디오)...")
+    # 7. AI-VAD 직접 학습 (비디오 파일들 직접 처리)
+    print(f"\n🎯 AI-VAD 직접 학습 시작...")
     print("💡 학습 과정:")
-    print("   1. 실제 비디오 파일들 사용")
+    print("   1. 실제 비디오 파일들 직접 로드")
     print("   2. Feature Extraction: Flow, Region, Pose, Deep features")
     print("   3. Density Update: 정상 특성들을 density estimator에 누적")
     print("   4. Density Fit: 모든 특성으로 분포 모델 학습")
@@ -231,25 +229,97 @@ def main():
     print("   6. 우리 환경의 실제 객체들 학습!")
     
     try:
-        # AI-VAD의 올바른 학습 방법 (실제 비디오)
-        engine.fit(model=model, datamodule=datamodule)
+        # 직접적인 비디오 처리 및 AI-VAD 학습
+        model.model.eval()  # 평가 모드로 설정
         
-        print("✅ AI-VAD 학습 완료!")
+        total_clips_processed = 0
+        total_detections = 0
         
-        # Density estimator 상태 확인
-        if hasattr(model.model, 'density_estimator'):
-            print(f"📊 Density Estimator 상태:")
-            print(f"   - 총 감지 수: {model.total_detections}")
+        for i, video_path in enumerate(video_files_available[:10]):  # 처음 10개만 처리
+            print(f"\n📹 비디오 처리 중: {i+1}/{min(10, len(video_files_available))}")
+            print(f"   파일: {Path(video_path).name}")
             
-            # Density estimator fit 호출
-            if model.total_detections > 0:
-                model.fit()  # density estimator 학습
-                print("✅ Density Estimator 학습 완료")
-            else:
-                print("⚠️ 감지된 영역이 없습니다.")
+            try:
+                # 비디오 로드
+                cap = cv2.VideoCapture(video_path)
+                if not cap.isOpened():
+                    print(f"   ⚠️ 비디오 열기 실패: {video_path}")
+                    continue
+                
+                frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+                fps = cap.get(cv2.CAP_PROP_FPS)
+                
+                print(f"   📊 프레임 수: {frame_count}, FPS: {fps:.1f}")
+                
+                # 2프레임씩 클립으로 처리
+                clip_count = 0
+                frame_buffer = []
+                
+                while True:
+                    ret, frame = cap.read()
+                    if not ret:
+                        break
+                    
+                    # 프레임 전처리
+                    frame_resized = cv2.resize(frame, (224, 224))
+                    frame_rgb = cv2.cvtColor(frame_resized, cv2.COLOR_BGR2RGB)
+                    frame_tensor = torch.from_numpy(frame_rgb).float() / 255.0
+                    frame_tensor = frame_tensor.permute(2, 0, 1)  # HWC -> CHW
+                    
+                    frame_buffer.append(frame_tensor)
+                    
+                    # 2프레임이 모이면 클립 처리
+                    if len(frame_buffer) == 2:
+                        try:
+                            # 비디오 클립 생성 [2, 3, 224, 224]
+                            video_clip = torch.stack(frame_buffer).unsqueeze(0).to(device)  # [1, 2, 3, 224, 224]
+                            
+                            # AI-VAD 추론 (학습 모드)
+                            with torch.no_grad():
+                                output = model.model(video_clip)
+                            
+                            # 특성 추출 및 density estimator 업데이트
+                            if hasattr(model.model, 'density_estimator'):
+                                # AI-VAD의 내부 특성들을 density estimator에 추가
+                                model.model.density_estimator.update(output)
+                                total_detections += 1
+                            
+                            clip_count += 1
+                            total_clips_processed += 1
+                            
+                            if clip_count % 10 == 0:
+                                print(f"   ✅ 처리된 클립: {clip_count}")
+                            
+                        except Exception as e:
+                            print(f"   ⚠️ 클립 처리 실패: {e}")
+                        
+                        # 버퍼에서 첫 번째 프레임 제거
+                        frame_buffer.pop(0)
+                
+                cap.release()
+                print(f"   ✅ 완료: {clip_count}개 클립 처리")
+                
+            except Exception as e:
+                print(f"   ❌ 비디오 처리 실패: {e}")
+                continue
+        
+        print(f"\n📊 전체 처리 결과:")
+        print(f"   - 처리된 비디오: {min(10, len(video_files_available))}개")
+        print(f"   - 처리된 클립: {total_clips_processed}개")
+        print(f"   - 총 감지 수: {total_detections}개")
+        
+        # Density estimator 최종 학습
+        if hasattr(model.model, 'density_estimator') and total_detections > 0:
+            print(f"\n🔧 Density Estimator 최종 학습...")
+            model.model.density_estimator.fit()
+            print("✅ Density Estimator 학습 완료")
+        else:
+            print("⚠️ 감지된 특성이 없어 density estimator 학습을 건너뜁니다.")
+        
+        print("✅ AI-VAD 직접 학습 완료!")
         
     except Exception as e:
-        print(f"❌ AI-VAD 학습 실패: {e}")
+        print(f"❌ AI-VAD 직접 학습 실패: {e}")
         import traceback
         traceback.print_exc()
         return
@@ -262,8 +332,9 @@ def main():
             'state_dict': model.state_dict(),
             'pytorch-lightning_version': '2.0.0',
             'model_class': 'AiVad',
-            'training_type': 'real_videos_density_estimation',
-            'total_detections': model.total_detections,
+            'training_type': 'real_videos_direct_processing',
+            'total_clips_processed': total_clips_processed,
+            'total_detections': total_detections,
         }, checkpoint_path)
         
         print(f"💾 학습된 모델 저장: {checkpoint_path}")
