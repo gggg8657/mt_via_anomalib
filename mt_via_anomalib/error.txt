@@ -3105,3 +3105,30 @@ Traceback (most recent call last):
   File "C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\anomalib\data\utils\path.py", line 121, in _prepare_files_labels
     raise RuntimeError(msg)
 RuntimeError: Found 0 normal images in C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib\custom_video_dataset\train\good with extensions ('.jpg', '.jpeg', '.png', '.ppm', '.bmp', '.pgm', '.tif', '.tiff', '.webp')
+
+
+
+--- ISSUE 2025.10.16 18:11 ---
+(mt_p310) C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib>python train_aivad_with_frames.py
+🚀 이미지 프레임을 사용한 AI-VAD 파인튜닝
+==================================================
+🖥️ 사용 디바이스: cuda
+GPU: NVIDIA GeForce RTX 4090
+📁 이미지 프레임 추출: image_segments.json
+  📂 정상 이미지 폴더: frame_dataset\train\good
+  📊 JSON 로드 완료: 144개 세그먼트
+    📸 normal_001_00_frame_20250728-143012_273.jpg
+    📸 normal_001_01_frame_20250728-143012_308.jpg
+    📸 normal_001_02_frame_20250728-143012_340.jpg
+    📸 normal_001_03_frame_20250728-143012_373.jpg
+    📸 normal_001_04_frame_20250728-143012_408.jpg
+    📸 normal_002_00_frame_20250728-143442_128.jpg
+    📸 normal_002_01_frame_20250728-143442_161.jpg
+    📸 normal_002_02_frame_20250728-143442_194.jpg
+    📸 normal_002_03_frame_20250728-143442_228.jpg
+    📸 normal_002_04_frame_20250728-143442_261.jpg
+  ✅ 정상 세그먼트: 23개
+  ✅ 복사된 이미지: 115개
+
+📊 Anomalib Folder 데이터 모듈 생성...
+❌ Folder 데이터 모듈 생성 실패: Folder.__init__() got an unexpected keyword argument 'image_size'
