@@ -206,7 +206,15 @@ def main():
     # 5. 간단한 훈련 (PyTorch Lightning 없이)
     print(f"\n🎯 AI-VAD 파인튜닝 시작...")
     try:
-        model.eval().to(device)
+        model.to(device)
+        
+        # 모델을 train 모드로 설정 (gradient 활성화)
+        model.train()
+        model.model.train()  # 내부 모델도 train 모드
+        
+        # 모든 파라미터의 gradient 활성화
+        for param in model.parameters():
+            param.requires_grad = True
         
         # 옵티마이저 설정
         optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
@@ -215,7 +223,6 @@ def main():
         for epoch in range(2):  # 2 에포크만
             print(f"\n📈 Epoch {epoch + 1}/2")
             
-            model.train()
             total_loss = 0
             
             for batch_idx, batch in enumerate(dataloader):
@@ -240,8 +247,9 @@ def main():
                         pred_score = output.pred_score.mean()
                         loss = torch.abs(pred_score - 0.1)  # 0.1에 가까워지도록
                     else:
-                        # 더미 손실
-                        loss = torch.tensor(0.1, device=device)
+                        # 더미 손실 (gradient 활성화)
+                        dummy_loss = torch.tensor(0.1, device=device, requires_grad=True)
+                        loss = dummy_loss
                     
                     # 역전파
                     loss.backward()
