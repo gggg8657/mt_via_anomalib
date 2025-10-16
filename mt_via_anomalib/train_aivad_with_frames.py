@@ -95,7 +95,6 @@ def main():
             train_batch_size=8,  # 이미지라서 배치 크기 증가
             eval_batch_size=8,
             num_workers=0,
-            image_size=(256, 256),  # Anomalib 기본 크기
         )
         
         print("✅ Folder 데이터 모듈 생성 완료")
