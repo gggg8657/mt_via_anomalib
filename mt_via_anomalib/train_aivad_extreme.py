@@ -121,32 +121,17 @@ def main():
         print("❌ 비디오 파일을 찾을 수 없습니다!")
         return
     
-    # 3. 상세한 비디오 내용 분석
-    print(f"\n🔍 상세한 비디오 내용 분석 시작...")
-    motion_videos = []
+    # 3. 모든 비디오 활용 (분석 없이 직접 처리)
+    print(f"\n🔍 모든 비디오 활용 모드...")
+    print(f"💡 분석 단계를 건너뛰고 모든 비디오를 직접 처리합니다.")
     
-    for video_file in video_files[:15]:  # 처음 15개만 분석
-        motion_detected, motion_score, motion_scores = analyze_video_content_detailed(video_file)
-        if motion_detected:
-            motion_videos.append((video_file, motion_score))
-        elif motion_score > 1:  # 움직임이 조금이라도 있으면
-            motion_videos.append((video_file, motion_score))
+    # 모든 비디오를 처리 대상으로 설정
+    motion_videos = [(vf, 1.0) for vf in video_files]
     
-    print(f"\n📊 상세 분석 결과:")
+    print(f"\n📊 처리 대상:")
     print(f"   - 전체 비디오: {len(video_files)}개")
-    print(f"   - 움직임 감지된 비디오: {len(motion_videos)}개")
-    
-    if len(motion_videos) == 0:
-        print("⚠️ 움직임이 감지된 비디오가 없습니다!")
-        print("💡 해결 방법:")
-        print("   1. 다른 비디오 디렉토리 시도")
-        print("   2. 더 큰 해상도의 비디오 사용")
-        print("   3. 실제 움직이는 객체가 있는 비디오 사용")
-        print("   4. 조명이 충분한 비디오 사용")
-        
-        # 모든 비디오를 강제로 처리
-        print("\n🔄 모든 비디오를 강제로 처리합니다...")
-        motion_videos = [(vf, 1.0) for vf in video_files[:5]]
+    print(f"   - 처리할 비디오: {len(motion_videos)}개")
+    print(f"   - 처리 방식: 모든 비디오 직접 처리")
     
     # 4. AI-VAD 모델 생성 (극단적인 설정)
     print(f"\n🤖 AI-VAD 모델 생성 (극단적인 설정)...")
@@ -218,113 +203,138 @@ def main():
         total_clips_processed = 0
         total_detections = 0
         
-        for i, (video_path, motion_score) in enumerate(motion_videos[:5]):  # 처음 5개만 처리
-            print(f"\n📹 비디오 처리 중: {i+1}/{min(5, len(motion_videos))}")
-            print(f"   파일: {Path(video_path).name}")
-            print(f"   움직임 점수: {motion_score:.2f}")
+        # 모든 비디오 처리 (처리 시간을 고려하여 배치 단위로 처리)
+        batch_size = 10  # 한 번에 10개씩 처리
+        total_batches = (len(motion_videos) + batch_size - 1) // batch_size
+        
+        print(f"📊 처리 계획:")
+        print(f"   - 전체 비디오: {len(motion_videos)}개")
+        print(f"   - 배치 크기: {batch_size}개")
+        print(f"   - 총 배치 수: {total_batches}개")
+        
+        for batch_idx in range(total_batches):
+            start_idx = batch_idx * batch_size
+            end_idx = min(start_idx + batch_size, len(motion_videos))
+            batch_videos = motion_videos[start_idx:end_idx]
             
-            try:
-                # 비디오 로드
-                cap = cv2.VideoCapture(video_path)
-                if not cap.isOpened():
-                    print(f"   ⚠️ 비디오 열기 실패: {video_path}")
-                    continue
-                
-                frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-                fps = cap.get(cv2.CAP_PROP_FPS)
-                width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-                height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-                
-                print(f"   📊 해상도: {width}x{height}, 프레임: {frame_count}, FPS: {fps:.1f}")
-                
-                # 해상도가 너무 작으면 경고
-                if width < 224 or height < 224:
-                    print(f"   ⚠️ 해상도가 작습니다: {width}x{height} (권장: 224x224 이상)")
-                
-                # 2프레임씩 클립으로 처리
-                clip_count = 0
-                frame_buffer = []
-                
-                while True:
-                    ret, frame = cap.read()
-                    if not ret:
-                        break
+            print(f"\n🔄 배치 {batch_idx + 1}/{total_batches} 처리 중...")
+            print(f"   - 처리 범위: {start_idx + 1}~{end_idx}")
+            
+            for i, (video_path, motion_score) in enumerate(batch_videos):
+                video_idx = start_idx + i + 1
+                print(f"\n📹 비디오 처리 중: {video_idx}/{len(motion_videos)}")
+                print(f"   파일: {Path(video_path).name}")
+                print(f"   움직임 점수: {motion_score:.2f}")
+            
+                try:
+                    # 비디오 로드
+                    cap = cv2.VideoCapture(video_path)
+                    if not cap.isOpened():
+                        print(f"   ⚠️ 비디오 열기 실패: {video_path}")
+                        continue
                     
-                    # 프레임 전처리 (더 큰 해상도로 리사이즈)
-                    frame_resized = cv2.resize(frame, (224, 224))
-                    frame_rgb = cv2.cvtColor(frame_resized, cv2.COLOR_BGR2RGB)
-                    frame_tensor = torch.from_numpy(frame_rgb).float() / 255.0
-                    frame_tensor = frame_tensor.permute(2, 0, 1)  # HWC -> CHW
+                    frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+                    fps = cap.get(cv2.CAP_PROP_FPS)
+                    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+                    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
                     
-                    frame_buffer.append(frame_tensor)
+                    print(f"   📊 해상도: {width}x{height}, 프레임: {frame_count}, FPS: {fps:.1f}")
                     
-                    # 2프레임이 모이면 클립 처리
-                    if len(frame_buffer) == 2:
-                        try:
-                            # 비디오 클립 생성 [2, 3, 224, 224]
-                            video_clip = torch.stack(frame_buffer).unsqueeze(0)  # [1, 2, 3, 224, 224]
-                            
-                            # 디바이스 확인 및 이동
-                            if device == "cuda":
-                                video_clip = video_clip.to(device)
-                            
-                            # AI-VAD 추론 (극단적인 설정)
-                            with torch.no_grad():
-                                try:
-                                    output = model.model(video_clip)
-                                    
-                                    # 출력 구조 확인
-                                    if isinstance(output, list) and len(output) > 0:
-                                        # 특성 추출 및 density estimator 업데이트
-                                        if hasattr(model.model, 'density_estimator'):
-                                            # AI-VAD의 내부 특성들을 density estimator에 추가
-                                            model.model.density_estimator.update(output)
-                                            total_detections += 1
+                    # 해상도가 너무 작으면 경고
+                    if width < 224 or height < 224:
+                        print(f"   ⚠️ 해상도가 작습니다: {width}x{height} (권장: 224x224 이상)")
+                    
+                    # 2프레임씩 클립으로 처리
+                    clip_count = 0
+                    frame_buffer = []
+                    
+                    while True:
+                        ret, frame = cap.read()
+                        if not ret:
+                            break
+                        
+                        # 프레임 전처리 (더 큰 해상도로 리사이즈)
+                        frame_resized = cv2.resize(frame, (224, 224))
+                        frame_rgb = cv2.cvtColor(frame_resized, cv2.COLOR_BGR2RGB)
+                        frame_tensor = torch.from_numpy(frame_rgb).float() / 255.0
+                        frame_tensor = frame_tensor.permute(2, 0, 1)  # HWC -> CHW
+                        
+                        frame_buffer.append(frame_tensor)
+                        
+                        # 2프레임이 모이면 클립 처리
+                        if len(frame_buffer) == 2:
+                            try:
+                                # 비디오 클립 생성 [2, 3, 224, 224]
+                                video_clip = torch.stack(frame_buffer).unsqueeze(0)  # [1, 2, 3, 224, 224]
+                                
+                                # 디바이스 확인 및 이동
+                                if device == "cuda":
+                                    video_clip = video_clip.to(device)
+                                
+                                # AI-VAD 추론 (극단적인 설정)
+                                with torch.no_grad():
+                                    try:
+                                        output = model.model(video_clip)
+                                        
+                                        # 출력 구조 확인
+                                        if isinstance(output, list) and len(output) > 0:
+                                            # 특성 추출 및 density estimator 업데이트
+                                            if hasattr(model.model, 'density_estimator'):
+                                                # AI-VAD의 내부 특성들을 density estimator에 추가
+                                                model.model.density_estimator.update(output)
+                                                total_detections += 1
+                                                
+                                            clip_count += 1
+                                            total_clips_processed += 1
                                             
-                                        clip_count += 1
-                                        total_clips_processed += 1
-                                        
-                                        if clip_count == 1:  # 첫 번째 성공한 클립
-                                            print(f"   🎉 첫 번째 객체 감지 성공!")
-                                        elif clip_count % 5 == 0:
-                                            print(f"   ✅ 처리된 클립: {clip_count}")
-                                        
-                                    else:
-                                        # 출력이 비어있거나 예상과 다름
-                                        if clip_count == 0:  # 첫 번째 클립에서만 출력
-                                            print(f"   ⚠️ AI-VAD 출력이 비어있거나 예상과 다름: {type(output)}")
+                                            if clip_count == 1:  # 첫 번째 성공한 클립
+                                                print(f"   🎉 첫 번째 객체 감지 성공!")
+                                            elif clip_count % 5 == 0:
+                                                print(f"   ✅ 처리된 클립: {clip_count}")
+                                            
+                                        else:
+                                            # 출력이 비어있거나 예상과 다름
+                                            if clip_count == 0:  # 첫 번째 클립에서만 출력
+                                                print(f"   ⚠️ AI-VAD 출력이 비어있거나 예상과 다름: {type(output)}")
                                         
                                 except Exception as e:
                                     if "index 0 is out of bounds" in str(e):
                                         # Region Extractor에서 객체 감지 실패
                                         if clip_count == 0:  # 첫 번째 클립에서만 출력
                                             print(f"   ⚠️ 객체 감지 실패: Region Extractor가 객체를 찾지 못함")
-                                    elif "amax(): Expected reduction dim 0" in str(e):
-                                        # 빈 텐서 문제
-                                        if clip_count == 0:
-                                            print(f"   ⚠️ 빈 텐서 문제: amax() 에러")
-                                    else:
-                                        if clip_count == 0:
-                                            print(f"   ⚠️ AI-VAD 추론 실패: {e}")
-                                    continue
+                                        elif "amax(): Expected reduction dim 0" in str(e):
+                                            # 빈 텐서 문제
+                                            if clip_count == 0:
+                                                print(f"   ⚠️ 빈 텐서 문제: amax() 에러")
+                                        else:
+                                            if clip_count == 0:
+                                                print(f"   ⚠️ AI-VAD 추론 실패: {e}")
+                                        continue
+                                
+                            except Exception as e:
+                                # 첫 번째 클립에서만 상세 에러 출력
+                                if clip_count == 0:
+                                    print(f"   ⚠️ 클립 처리 실패: {e}")
                             
-                        except Exception as e:
-                            # 첫 번째 클립에서만 상세 에러 출력
-                            if clip_count == 0:
-                                print(f"   ⚠️ 클립 처리 실패: {e}")
-                        
-                        # 버퍼에서 첫 번째 프레임 제거
-                        frame_buffer.pop(0)
-                
-                cap.release()
-                print(f"   ✅ 완료: {clip_count}개 클립 처리")
-                
-            except Exception as e:
-                print(f"   ❌ 비디오 처리 실패: {e}")
-                continue
+                            # 버퍼에서 첫 번째 프레임 제거
+                            frame_buffer.pop(0)
+                    
+                    cap.release()
+                    print(f"   ✅ 완료: {clip_count}개 클립 처리")
+                    
+                except Exception as e:
+                    print(f"   ❌ 비디오 처리 실패: {e}")
+                    continue
+            
+            # 배치 완료 후 진행 상황 출력
+            processed_videos = min(end_idx, len(motion_videos))
+            print(f"\n✅ 배치 {batch_idx + 1}/{total_batches} 완료")
+            print(f"   - 처리된 비디오: {processed_videos}/{len(motion_videos)}")
+            print(f"   - 처리된 클립: {total_clips_processed}")
+            print(f"   - 총 감지 수: {total_detections}")
         
         print(f"\n📊 전체 처리 결과:")
-        print(f"   - 처리된 비디오: {min(5, len(motion_videos))}개")
+        print(f"   - 처리된 비디오: {len(motion_videos)}개")
         print(f"   - 처리된 클립: {total_clips_processed}개")
         print(f"   - 총 감지 수: {total_detections}개")
         
