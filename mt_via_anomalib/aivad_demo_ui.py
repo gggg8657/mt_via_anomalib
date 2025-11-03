@@ -86,19 +86,19 @@ class AiVadInferencer:
         self.frame_counter = 0
         
         # 이상 탐지만을 위한 최소 구성
-        # 불필요한 객체 감지/추적 기능 모두 제거, 이상 점수만 계산
+        # 객체 감지는 최소한으로 허용하되, 이상 점수 계산에 집중
         self.model = AiVad(
-            use_velocity_features=False,  # 불필요 - 이상 탐지만 하면 속도 특성 불필요
-            use_pose_features=False,      # 불필요 - 이상 탐지만 하면 포즈 특성 불필요  
-            use_deep_features=True,       # 기본 특성만 사용 (최소한)
-            n_components_velocity=1,      # 최소값
-            n_neighbors_pose=1,          # 최소값
-            n_neighbors_deep=1,          # 최소값
-            # 객체 감지 관련 파라미터 - 이상 탐지에 필요 없지만 모델 구조상 요구됨
-            box_score_thresh=0.99,       # 최대한 높게 - 객체 감지 안하게
-            min_bbox_area=99999,          # 매우 크게 - 객체 감지 안하게
-            max_bbox_overlap=0.01,       # 최소값
-            foreground_binary_threshold=255,  # 최대값 - foreground 감지 안하게
+            use_velocity_features=False,  # 비활성화 - 성능 향상
+            use_pose_features=False,      # 비활성화 - 성능 향상
+            use_deep_features=True,       # 기본 특성만 사용
+            n_components_velocity=1,
+            n_neighbors_pose=1,
+            n_neighbors_deep=1,
+            # 객체 감지 파라미터 - 최소한으로 조정하여 amax 오류 방지
+            box_score_thresh=0.3,         # 낮춤 - 객체 감지 허용 (amax 오류 방지)
+            min_bbox_area=100,            # 작게 - 객체 감지 허용 (amax 오류 방지)
+            max_bbox_overlap=0.8,         # 높게 - 중복 허용
+            foreground_binary_threshold=10,  # 낮춤 - foreground 감지 허용
         )
         self.model.eval().to(self.device)
         self.core = self.model.model
@@ -107,18 +107,8 @@ class AiVadInferencer:
         # torch.compile 비활성화 (CUDA Graph 경고 방지 및 안정성 향상)
         # torch.compile은 실시간 추론에서 오히려 성능 저하를 일으킬 수 있음
         
-        # Region Extractor 완전히 우회 (이상 탐지에 불필요)
-        # 이상 점수만 필요하므로 region 추출은 시간 낭비
-        if hasattr(self.core, 'region_extractor'):
-            original_region_extractor = self.core.region_extractor
-            def dummy_region_extractor(*args, **kwargs):
-                # 빈 결과 즉시 반환 - 시간 절약
-                return None
-            # 패치 적용 - 이상 탐지만 하므로 region 추출 불필요
-            try:
-                self.core.region_extractor = dummy_region_extractor
-            except:
-                pass  # 패치 실패해도 계속 진행
+        # Region Extractor는 그대로 사용 (amax 오류 방지를 위해 필요)
+        # 대신 파라미터 조정으로 성능 최적화
 
         # 프레임 버퍼링 (2프레임 필요)
         self.frame_buffer = deque(maxlen=2)
@@ -240,7 +230,7 @@ class AiVadInferencer:
 
         with torch.no_grad():
             try:
-                # 모델 추론 실행 (region 추출 최소화를 위해 설정 최적화됨)
+                # 모델 추론 실행
                 print(f"🔍 [추론 실행] 프레임 {self.frame_counter}, 배치 크기: {batch.shape}")
                 output = self.core(batch)
                 print(f"✅ [추론 성공] 출력 타입: {type(output)}")
@@ -248,9 +238,20 @@ class AiVadInferencer:
                 # 모델 추론 실패 시 - 객체 감지 실패 등
                 error_str = str(model_error)
                 print(f"⚠️ [추론 실패] 오류: {error_str[:100]}")
-                if "index 0 is out of bounds" in error_str:
-                    # Region Extractor에서 객체 감지 실패 - 정상적으로 처리
-                    output = None
+                
+                # amax 오류나 index 오류 모두 빈 텐서 문제로 처리
+                if "amax" in error_str or "index 0 is out of bounds" in error_str:
+                    # 객체 감지 실패 - 빈 텐서로 인한 오류
+                    # 기본 점수 반환 (0.0 또는 작은 랜덤 값)
+                    print(f"⚠️ [객체 감지 실패] 빈 텐서 오류 - 기본 점수 사용")
+                    # 더미 출력 생성하여 점수 계산 계속 진행
+                    class DummyOutput:
+                        def __init__(self, device):
+                            # 기본 점수: 0.0 (정상)
+                            self.pred_score = torch.tensor([0.0], device=device)
+                            # 기본 이상 맵
+                            self.anomaly_map = torch.zeros(1, 160, 160, device=device)
+                    output = DummyOutput(self.device)
                 else:
                     # 다른 오류도 기본값으로 처리
                     output = None
