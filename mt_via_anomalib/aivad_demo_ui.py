@@ -192,8 +192,8 @@ class AiVadInferencer:
             return self.last_yolo_detections if self.last_yolo_detections else []
     
     def _try_load_checkpoint(self) -> None:
-        """체크포인트 자동 로드 시도"""
-        # 여러 체크포인트 파일 시도
+        """체크포인트 자동 로드 시도 (로컬 파일 또는 anomalib 사전 훈련된 모델)"""
+        # 1단계: 로컬 체크포인트 파일 시도
         possible_checkpoints = [
             "aivad_extreme_learned.ckpt",
             "aivad_proper_checkpoint.ckpt",
@@ -204,7 +204,7 @@ class AiVadInferencer:
         for ckpt_path in possible_checkpoints:
             if os.path.exists(ckpt_path):
                 try:
-                    print(f"🔍 체크포인트 발견: {ckpt_path}, 로드 시도 중...")
+                    print(f"🔍 로컬 체크포인트 발견: {ckpt_path}, 로드 시도 중...")
                     self.load_checkpoint(ckpt_path)
                     print(f"✅ 체크포인트 자동 로드 성공: {ckpt_path}")
                     return
@@ -212,8 +212,106 @@ class AiVadInferencer:
                     print(f"⚠️ 체크포인트 로드 실패 ({ckpt_path}): {e}")
                     continue
         
+        # 2단계: anomalib에서 사전 훈련된 모델 다운로드 시도
+        print("🔍 로컬 체크포인트를 찾지 못했습니다. anomalib 사전 훈련된 모델 다운로드 시도 중...")
+        try:
+            self._download_pretrained_model()
+            return
+        except Exception as e:
+            print(f"⚠️ 사전 훈련된 모델 다운로드 실패: {e}")
+        
         print("ℹ️ 사용 가능한 체크포인트를 찾지 못했습니다. 기본 모델을 사용합니다.")
         print("💡 체크포인트를 수동으로 로드하려면 UI에서 '체크포인트 로드' 버튼을 사용하세요.")
+    
+    def _download_pretrained_model(self) -> None:
+        """anomalib에서 사전 훈련된 모델 다운로드 및 로드"""
+        try:
+            # Hugging Face Hub를 통한 다운로드 시도
+            from huggingface_hub import hf_hub_download
+            
+            print("📥 Hugging Face Hub에서 anomalib 사전 훈련된 AiVAD 모델 다운로드 중...")
+            
+            # anomalib 공식 모델 저장소에서 AiVAD 모델 시도
+            # 일반적인 모델 저장소 경로 시도
+            possible_repos = [
+                "anomalib/aivad",
+                "anomalib/models",
+                "openvinotoolkit/anomalib",
+            ]
+            
+            possible_files = [
+                "aivad.ckpt",
+                "model.ckpt",
+                "pytorch_model.bin",
+                "aivad_pretrained.ckpt",
+            ]
+            
+            for repo_id in possible_repos:
+                for file_name in possible_files:
+                    try:
+                        print(f"   시도 중: {repo_id}/{file_name}")
+                        checkpoint_path = hf_hub_download(
+                            repo_id=repo_id,
+                            filename=file_name,
+                            cache_dir=os.path.expanduser("~/.cache/anomalib"),
+                        )
+                        print(f"✅ 다운로드 성공: {checkpoint_path}")
+                        self.load_checkpoint(checkpoint_path)
+                        print(f"✅ 사전 훈련된 모델 로드 완료!")
+                        return
+                    except Exception as e:
+                        # 다음 시도
+                        continue
+            
+            raise Exception("사전 훈련된 모델을 찾을 수 없습니다.")
+            
+        except ImportError:
+            print("⚠️ huggingface_hub 패키지가 없습니다. 설치 중...")
+            print("💡 pip install huggingface_hub 명령으로 설치하세요.")
+            raise
+        except Exception as e:
+            print(f"⚠️ Hugging Face Hub 다운로드 실패: {e}")
+            # 다른 방법 시도: torch.hub 또는 직접 URL 다운로드
+            print("🔄 다른 방법으로 사전 훈련된 모델 다운로드 시도 중...")
+            try:
+                self._download_from_url()
+            except Exception as e2:
+                print(f"⚠️ URL 다운로드도 실패: {e2}")
+                raise
+    
+    def _download_from_url(self) -> None:
+        """URL을 통한 사전 훈련된 모델 다운로드"""
+        import urllib.request
+        
+        # anomalib 공식 모델 URL들 시도
+        possible_urls = [
+            "https://github.com/openvinotoolkit/anomalib/releases/download/v2.2.0/aivad.ckpt",
+            "https://huggingface.co/anomalib/aivad/resolve/main/model.ckpt",
+        ]
+        
+        cache_dir = os.path.expanduser("~/.cache/anomalib")
+        os.makedirs(cache_dir, exist_ok=True)
+        
+        for url in possible_urls:
+            try:
+                filename = url.split("/")[-1]
+                checkpoint_path = os.path.join(cache_dir, filename)
+                
+                if os.path.exists(checkpoint_path):
+                    print(f"✅ 캐시된 모델 발견: {checkpoint_path}")
+                    self.load_checkpoint(checkpoint_path)
+                    return
+                
+                print(f"📥 다운로드 중: {url}")
+                urllib.request.urlretrieve(url, checkpoint_path)
+                print(f"✅ 다운로드 완료: {checkpoint_path}")
+                self.load_checkpoint(checkpoint_path)
+                return
+            except Exception as e:
+                print(f"⚠️ URL 다운로드 실패 ({url}): {e}")
+                continue
+        
+        raise Exception("사전 훈련된 모델 URL을 찾을 수 없습니다.")
     
     def load_checkpoint(self, ckpt_path: str) -> None:
         """체크포인트 로드"""
