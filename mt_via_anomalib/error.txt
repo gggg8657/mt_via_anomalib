@@ -4765,4 +4765,38 @@ GPU: NVIDIA GeForce RTX 4090
 C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\cuda\graphs.py:84: UserWarning: The CUDA Graph is empty. This usually means that the graph was attempted to be captured on wrong device or stream. (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\pytorch\aten\src\ATen\cuda\CUDAGraph.cpp:176.)
   super().capture_end()
 
+(mt_p310) PS C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib> python .\aivad_demo_ui.py
+✅ YOLO 모델 로드 완료 (yolov8n.pt)
+🔍 [추론 실행] 프레임 5, 배치 크기: torch.Size([1, 2, 3, 160, 160])
+⚠️ [추론 실패] 오류: amax(): Expected reduction dim 0 to have non-zero size.
+⚠️ [출력 None] 추론 결과가 없음 - 기본값 사용
+💾 [결과 캐싱] 점수: 0.0000, 이상 유형: 정상
+🔍 [추론 실행] 프레임 10, 배치 크기: torch.Size([1, 2, 3, 160, 160])
+⚠️ [추론 실패] 오류: amax(): Expected reduction dim 0 to have non-zero size.
+⚠️ [출력 None] 추론 결과가 없음 - 기본값 사용
+💾 [결과 캐싱] 점수: 0.0000, 이상 유형: 정상
+🔍 [추론 실행] 프레임 15, 배치 크기: torch.Size([1, 2, 3, 160, 160])
+⚠️ [추론 실패] 오류: amax(): Expected reduction dim 0 to have non-zero size.
+⚠️ [출력 None] 추론 결과가 없음 - 기본값 사용
+💾 [결과 캐싱] 점수: 0.0000, 이상 유형: 정상
+🔍 [추론 실행] 프레임 20, 배치 크기: torch.Size([1, 2, 3, 160, 160])
+⚠️ [추론 실패] 오류: amax(): Expected reduction dim 0 to have non-zero size.
+⚠️ [출력 None] 추론 결과가 없음 - 기본값 사용
+💾 [결과 캐싱] 점수: 0.0000, 이상 유형: 정상
+🔍 [추론 실행] 프레임 25, 배치 크기: torch.Size([1, 2, 3, 160, 160])
+⚠️ [추론 실패] 오류: amax(): Expected reduction dim 0 to have non-zero size.
+⚠️ [출력 None] 추론 결과가 없음 - 기본값 사용
+💾 [결과 캐싱] 점수: 0.0000, 이상 유형: 정상
+🔍 [추론 실행] 프레임 30, 배치 크기: torch.Size([1, 2, 3, 160, 160])
+⚠️ [추론 실패] 오류: amax(): Expected reduction dim 0 to have non-zero size.
+⚠️ [출력 None] 추론 결과가 없음 - 기본값 사용
+💾 [결과 캐싱] 점수: 0.0000, 이상 유형: 정상
+🔍 [추론 실행] 프레임 35, 배치 크기: torch.Size([1, 2, 3, 160, 160])
+⚠️ [추론 실패] 오류: amax(): Expected reduction dim 0 to have non-zero size.
+⚠️ [출력 None] 추론 결과가 없음 - 기본값 사용
+💾 [결과 캐싱] 점수: 0.0000, 이상 유형: 정상
+🔍 [추론 실행] 프레임 40, 배치 크기: torch.Size([1, 2, 3, 160, 160])
+⚠️ [추론 실패] 오류: amax(): Expected reduction dim 0 to have non-zero size.
+⚠️ [출력 None] 추론 결과가 없음 - 기본값 사용
+💾 [결과 캐싱] 점수: 0.0000, 이상 유형: 정상
 
