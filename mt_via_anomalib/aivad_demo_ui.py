@@ -85,19 +85,20 @@ class AiVadInferencer:
         self.skip_frames = skip_frames  # N 프레임마다 한 번만 추론
         self.frame_counter = 0
         
-        # 실시간 성능 최적화를 위한 모델 설정
-        # 최대한 빠르게 하기 위해 많은 기능 비활성화
+        # 이상 탐지만을 위한 최소 구성
+        # 불필요한 객체 감지/추적 기능 모두 제거, 이상 점수만 계산
         self.model = AiVad(
-            use_velocity_features=False,  # 비활성화 - 성능 향상
-            use_pose_features=False,      # 비활성화 - 성능 향상
-            use_deep_features=True,       # 기본 특성만 사용
-            n_components_velocity=1,
-            n_neighbors_pose=1,
-            n_neighbors_deep=1,
-            box_score_thresh=0.99,  # 매우 높게 설정하여 거의 감지 안함 (성능 최적화)
-            min_bbox_area=50000,    # 매우 크게 설정 (성능 최적화)
-            max_bbox_overlap=0.05,  # 매우 낮게 설정
-            foreground_binary_threshold=200,  # 매우 높게 설정하여 foreground 감지 최소화
+            use_velocity_features=False,  # 불필요 - 이상 탐지만 하면 속도 특성 불필요
+            use_pose_features=False,      # 불필요 - 이상 탐지만 하면 포즈 특성 불필요  
+            use_deep_features=True,       # 기본 특성만 사용 (최소한)
+            n_components_velocity=1,      # 최소값
+            n_neighbors_pose=1,          # 최소값
+            n_neighbors_deep=1,          # 최소값
+            # 객체 감지 관련 파라미터 - 이상 탐지에 필요 없지만 모델 구조상 요구됨
+            box_score_thresh=0.99,       # 최대한 높게 - 객체 감지 안하게
+            min_bbox_area=99999,          # 매우 크게 - 객체 감지 안하게
+            max_bbox_overlap=0.01,       # 최소값
+            foreground_binary_threshold=255,  # 최대값 - foreground 감지 안하게
         )
         self.model.eval().to(self.device)
         self.core = self.model.model
@@ -106,15 +107,18 @@ class AiVadInferencer:
         # torch.compile 비활성화 (CUDA Graph 경고 방지 및 안정성 향상)
         # torch.compile은 실시간 추론에서 오히려 성능 저하를 일으킬 수 있음
         
-        # Region Extractor 비활성화 패치 (성능 최적화)
-        # 모델 내부의 region_extractor를 호출하지 않도록 우회
+        # Region Extractor 완전히 우회 (이상 탐지에 불필요)
+        # 이상 점수만 필요하므로 region 추출은 시간 낭비
         if hasattr(self.core, 'region_extractor'):
             original_region_extractor = self.core.region_extractor
-            def fast_region_extractor(*args, **kwargs):
-                # 빈 결과 반환하여 region 추출 시간 절약
+            def dummy_region_extractor(*args, **kwargs):
+                # 빈 결과 즉시 반환 - 시간 절약
                 return None
-            # 일시적으로 비활성화 (필요시 주석 해제)
-            # self.core.region_extractor = fast_region_extractor
+            # 패치 적용 - 이상 탐지만 하므로 region 추출 불필요
+            try:
+                self.core.region_extractor = dummy_region_extractor
+            except:
+                pass  # 패치 실패해도 계속 진행
 
         # 프레임 버퍼링 (2프레임 필요)
         self.frame_buffer = deque(maxlen=2)
@@ -296,13 +300,9 @@ class AiVadInferencer:
                     # 인덱스 오류나 런타임 오류 시 기본값 사용 - 해상도 조정
                     anomaly_map = np.random.rand(160, 160)
                 
-                # 지역 추출 비활성화 (성능 최적화) - 필요시 주석 해제
-                # 지역 추출은 매우 느리므로 실시간 처리에서는 생략
+                # 지역 추출 완전 비활성화 (이상 탐지에 불필요)
+                # 이상 점수만 필요하므로 region/flow 추출은 시간 낭비
                 regions = None
-                # try:
-                #     flows, regions = self._extract_regions_and_flows(t0.unsqueeze(0), t1.unsqueeze(0))
-                # except Exception:
-                #     regions = None
 
         # 이상 유형 결정
         anomaly_type = "정상"
@@ -410,16 +410,8 @@ class AiVadInferencer:
                     1
                 )
 
-        # 박스 오버레이 (AiVAD regions - 있는 경우)
-        if regions is not None and len(regions) > 0:
-            region = regions[0]
-            if 'boxes' in region:
-                boxes = region['boxes'].detach().cpu().numpy()
-                for box in boxes:
-                    x1, y1, x2, y2 = box.astype(int)
-                    color = (0, 0, 255) if is_anomaly else (0, 255, 0)
-                    thickness = 2 if is_anomaly else 1
-                    cv2.rectangle(overlay, (x1, y1), (x2, y2), color, thickness)
+        # AiVAD region 박스는 비활성화 (이상 탐지만 하므로 불필요)
+        # YOLO 객체 감지만 사용하면 됨
         
         # 상단에 감지된 객체 목록 표시
         if detected_objects:
