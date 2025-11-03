@@ -707,6 +707,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.threshold: float = 0.5
         self.is_anomaly_detected = False
         self.frame_number = 0
+        self.current_frame: Optional[np.ndarray] = None  # 원본 프레임 저장
         self.last_anomaly_frame = -1  # 마지막 이상 탐지 프레임 번호
 
         # 모델 및 로거 초기화 (프레임 스킵: 5프레임마다 한 번만 추론 - 성능과 정확도 균형)
@@ -1080,10 +1081,15 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def _display_frame(self, frame_bgr: np.ndarray, is_anomaly: bool = False) -> None:
         """프레임 표시"""
+        # 원본 프레임 저장 (resizeEvent에서 재사용)
+        self.current_frame = frame_bgr.copy()
+        
         h, w = frame_bgr.shape[:2]
         rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
         qimg = QtGui.QImage(rgb.data, w, h, 3 * w, QtGui.QImage.Format.Format_RGB888)
         pixmap = QtGui.QPixmap.fromImage(qimg)
+        
+        # 비디오 크기를 라벨 크기에 맞춰 스케일 (최대 크기 제한 없음)
         pixmap = pixmap.scaled(
             self.video_label.size(), 
             QtCore.Qt.AspectRatioMode.KeepAspectRatio, 
@@ -1093,14 +1099,18 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def resizeEvent(self, event: QtGui.QResizeEvent) -> None:
         """리사이즈 이벤트"""
-        if self.video_label.pixmap():
-            self.video_label.setPixmap(
-                self.video_label.pixmap().scaled(
-                    self.video_label.size(), 
-                    QtCore.Qt.AspectRatioMode.KeepAspectRatio, 
-                    QtCore.Qt.TransformationMode.SmoothTransformation
-                )
+        # 원본 프레임이 있으면 원본에서 다시 스케일 (이미 스케일된 pixmap을 다시 스케일하지 않음)
+        if self.current_frame is not None:
+            h, w = self.current_frame.shape[:2]
+            rgb = cv2.cvtColor(self.current_frame, cv2.COLOR_BGR2RGB)
+            qimg = QtGui.QImage(rgb.data, w, h, 3 * w, QtGui.QImage.Format.Format_RGB888)
+            pixmap = QtGui.QPixmap.fromImage(qimg)
+            pixmap = pixmap.scaled(
+                self.video_label.size(), 
+                QtCore.Qt.AspectRatioMode.KeepAspectRatio, 
+                QtCore.Qt.TransformationMode.SmoothTransformation
             )
+            self.video_label.setPixmap(pixmap)
         super().resizeEvent(event)
 
     def closeEvent(self, event: QtGui.QCloseEvent) -> None:

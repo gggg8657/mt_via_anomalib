@@ -1,6 +1,6 @@
 """
 Accurate Interpretable VAD (AiVAD) 공식 학습 방법
-anomalib의 공식 문서와 GitHub 예제를 따라 구현
+test.ipynb에서 성공한 방법을 따라 구현
 """
 
 import os
@@ -11,10 +11,86 @@ from anomalib.data import Avenue
 from anomalib.engine import Engine
 from anomalib.data.datasets.base.video import VideoTargetFrame
 
+# cuDNN 설정 (test.ipynb에서 사용한 설정)
+torch.backends.cudnn.enabled = False
+torch.backends.cudnn.benchmark = False
+torch.backends.cudnn.deterministic = True
+torch.set_float32_matmul_precision('medium')
+
+# pandas 버전 호환성 패치
+def patch_avenue_dataset():
+    """Avenue 데이터셋의 pandas 버전 호환성 문제 패치"""
+    try:
+        from anomalib.data.datasets.video import avenue
+        import pandas as pd
+        from pathlib import Path
+        
+        original_func = avenue.make_avenue_dataset
+        
+        # 직접 구현 방식으로 Avenue 데이터셋 로딩 (pandas 문제 완전 우회)
+        def patched_make_avenue_dataset(root, gt_dir, split):
+            # anomalib의 원본 로직을 수동으로 구현 (pandas 문제 수정)
+            root = Path(root)
+            gt_dir = Path(gt_dir) if gt_dir else None
+            
+            # Avenue 데이터셋 파일 찾기
+            samples_list = []
+            training_dir = root / "training_videos"
+            testing_dir = root / "testing_videos"
+            
+            if training_dir.exists():
+                for video_file in sorted(training_dir.glob("*.avi")):
+                    samples_list.append({
+                        'image_path': str(video_file),
+                        'video_path': str(video_file),
+                        'folder': 'training_videos',
+                        'split': 'train',
+                        'mask_path': '',
+                        'root': str(root),
+                    })
+            
+            if testing_dir.exists():
+                for video_file in sorted(testing_dir.glob("*.avi")):
+                    mask_path = ''
+                    if gt_dir and (gt_dir / "testing_label_mask" / video_file.name).exists():
+                        mask_path = str(gt_dir / "testing_label_mask" / video_file.name)
+                    
+                    samples_list.append({
+                        'image_path': str(video_file),
+                        'video_path': str(video_file),
+                        'folder': 'testing_videos',
+                        'split': 'test',
+                        'mask_path': mask_path,
+                        'root': str(root),
+                    })
+            
+            # DataFrame 생성 (명시적 인덱스 설정)
+            if samples_list:
+                samples = pd.DataFrame(samples_list)
+                samples = samples.reset_index(drop=True)
+            else:
+                samples = pd.DataFrame(columns=['image_path', 'video_path', 'folder', 'split', 'mask_path', 'root'])
+            
+            # split 필터링
+            if split:
+                samples = samples[samples.split == split].reset_index(drop=True)
+            
+            return samples
+        
+        avenue.make_avenue_dataset = patched_make_avenue_dataset
+        print("✅ Avenue 데이터셋 pandas 패치 적용 완료")
+        return True
+    except Exception as e:
+        print(f"⚠️ pandas 패치 실패: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
+
 def main():
-    """AiVAD 공식 학습 방법"""
+    """AiVAD 공식 학습 방법 (test.ipynb 기반)"""
     print("=" * 60)
     print("🚀 Accurate Interpretable VAD (AiVAD) 공식 학습 시작")
+    print("💡 test.ipynb에서 성공한 방법 사용")
     print("=" * 60)
     
     # GPU 설정
@@ -22,12 +98,15 @@ def main():
     print(f"\n🖥️ 사용 디바이스: {device}")
     if device == "cuda":
         print(f"   GPU: {torch.cuda.get_device_name()}")
-        print(f"   GPU 메모리: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB")
+        torch.cuda.empty_cache()
+        torch.cuda.synchronize()
     
-    # 1. Avenue 데이터셋 준비 (공식 데이터셋)
+    # pandas 버전 호환성 패치 적용
+    patch_avenue_dataset()
+    
+    # 1. Avenue 데이터셋 준비 (test.ipynb와 동일한 방법)
     print("\n📁 Avenue 데이터셋 준비 중...")
     print("💡 Avenue 데이터셋은 자동으로 다운로드됩니다.")
-    print("💡 처음 실행 시 시간이 걸릴 수 있습니다.")
     
     try:
         datamodule = Avenue(
@@ -35,37 +114,25 @@ def main():
             clip_length_in_frames=2,  # AiVAD는 2프레임 클립 사용
             frames_between_clips=1,   # 클립 간 1프레임 간격
             target_frame=VideoTargetFrame.LAST,  # 마지막 프레임 타겟
-            num_workers=4,            # 데이터 로더 워커 수
-            train_batch_size=8,       # 훈련 배치 크기 (GPU 메모리에 따라 조정)
-            eval_batch_size=8,        # 검증 배치 크기
+            num_workers=2,            # test.ipynb와 동일
         )
         print("✅ Avenue 데이터 모듈 생성 완료")
         
+        # 데이터 다운로드 (필요시)
+        print("📥 데이터셋 다운로드 확인 중...")
+        datamodule.prepare_data()
+        print("✅ 데이터셋 준비 완료")
+        
     except Exception as e:
         print(f"❌ 데이터셋 준비 실패: {e}")
-        print("\n💡 대안: 커스텀 비디오 데이터 사용")
-        print("💡 또는 Avenue 데이터셋이 자동 다운로드되기를 기다리세요.")
+        import traceback
+        traceback.print_exc()
         return
     
-    # 2. AiVAD 모델 초기화 (공식 설정)
-    print("\n🤖 AiVAD 모델 초기화 (공식 설정)...")
+    # 2. AiVAD 모델 초기화 (test.ipynb와 동일)
+    print("\n🤖 AiVAD 모델 초기화...")
     try:
-        model = AiVad(
-            # 공식 논문의 기본 설정
-            use_velocity_features=True,   # 속도 특성 사용
-            use_pose_features=True,       # 포즈 특성 사용
-            use_deep_features=True,       # 딥 특성 사용
-            # Density estimation 설정
-            n_components_velocity=2,      # 속도 특성의 GMM 컴포넌트 수
-            n_neighbors_pose=1,           # 포즈 특성의 k-NN
-            n_neighbors_deep=1,           # 딥 특성의 k-NN
-            # 객체 감지 설정 (기본값)
-            box_score_thresh=0.7,
-            min_bbox_area=100,
-            max_bbox_overlap=0.65,
-            foreground_binary_threshold=18,
-        )
-        model = model.to(device)
+        model = AiVad()  # 기본 설정 사용 (test.ipynb와 동일)
         print("✅ AiVAD 모델 생성 완료")
         
     except Exception as e:
@@ -74,20 +141,20 @@ def main():
         traceback.print_exc()
         return
     
-    # 3. 학습 엔진 설정 (공식 방법)
-    print("\n🔧 PyTorch Lightning Engine 설정 (공식 방법)...")
+    # 3. 학습 엔진 설정 (test.ipynb와 동일한 설정)
+    print("\n🔧 PyTorch Lightning Engine 설정 (test.ipynb 방식)...")
     try:
         engine = Engine(
-            devices=1 if device == "cuda" else "auto",
-            accelerator="gpu" if device == "cuda" else "cpu",
-            precision="16-mixed" if device == "cuda" else "32",  # Mixed precision (GPU 성능 향상)
-            max_epochs=50,                # 공식 논문에서 권장하는 에포크 수
-            gradient_clip_val=1.0,        # 그래디언트 클리핑
-            accumulate_grad_batches=1,    # 그래디언트 누적
-            log_every_n_steps=10,         # 로그 출력 주기
-            val_check_interval=0.5,       # 검증 주기 (에포크의 50%마다)
-            enable_progress_bar=True,      # 진행 표시줄
-            enable_model_summary=True,     # 모델 요약 출력
+            devices=1,  # 단일 GPU 사용 (test.ipynb와 동일)
+            accelerator='gpu' if device == "cuda" else "cpu",
+            precision='32',  # 32-bit precision (test.ipynb와 동일, cuDNN 호환성)
+            max_epochs=10,  # test.ipynb와 동일
+            limit_train_batches=5,  # test.ipynb와 동일 (메모리 사용량 감소)
+            limit_val_batches=2,  # test.ipynb와 동일
+            accumulate_grad_batches=1,  # test.ipynb와 동일
+            log_every_n_steps=10,
+            enable_progress_bar=True,
+            enable_model_summary=True,
         )
         print("✅ Engine 설정 완료")
         
@@ -97,7 +164,7 @@ def main():
         traceback.print_exc()
         return
     
-    # 4. 학습 시작
+    # 4. 학습 시작 (test.ipynb와 동일한 방법)
     print("\n🎯 AiVAD 학습 시작!")
     print("💡 학습 과정:")
     print("   1. 정상 비디오 클립으로 Feature Extraction (Flow, Region, Pose, Deep)")
@@ -107,7 +174,7 @@ def main():
     print()
     
     try:
-        # 공식 학습 방법: engine.fit() 사용
+        # test.ipynb와 동일한 방법: engine.fit() 사용
         engine.fit(model=model, datamodule=datamodule)
         
         print("\n✅ 학습 완료!")
@@ -118,14 +185,14 @@ def main():
         traceback.print_exc()
         return
     
-    # 5. 체크포인트 저장 (공식 방법)
+    # 5. 체크포인트 저장
     checkpoint_path = "aivad_official_trained.ckpt"
     print(f"\n💾 체크포인트 저장 중: {checkpoint_path}")
     
     try:
         # PyTorch Lightning의 공식 저장 방법
-        if hasattr(engine, 'save_checkpoint'):
-            engine.save_checkpoint(checkpoint_path)
+        if hasattr(engine.trainer, 'save_checkpoint'):
+            engine.trainer.save_checkpoint(checkpoint_path)
         else:
             # 수동 저장 (백업)
             torch.save({
@@ -159,4 +226,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

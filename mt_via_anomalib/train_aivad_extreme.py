@@ -272,8 +272,8 @@ def main():
                                     video_clip = video_clip.to(device)
                                 
                                 # AI-VAD 추론 (극단적인 설정)
-                                with torch.no_grad():
-                                    try:
+                                try:
+                                    with torch.no_grad():
                                         output = model.model(video_clip)
                                         
                                         # 출력 구조 확인
