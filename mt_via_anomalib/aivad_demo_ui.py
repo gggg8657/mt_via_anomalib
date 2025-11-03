@@ -701,6 +701,10 @@ class MainWindow(QtWidgets.QMainWindow):
         super().__init__()
         self.setWindowTitle("AiVAD 데모 UI - 실시간 이상 탐지")
         self.resize(1400, 900)
+        
+        # 최소 크기만 설정 (최대 크기 제한 없음 - 자유롭게 확대 가능)
+        self.setMinimumSize(800, 600)
+        # 최대 크기 제한 없음 (16777215 x 16777215가 Qt의 최대값이지만 무제한으로 설정)
 
         # 상태
         self.video_path: Optional[str] = None
@@ -709,6 +713,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.frame_number = 0
         self.current_frame: Optional[np.ndarray] = None  # 원본 프레임 저장
         self.last_anomaly_frame = -1  # 마지막 이상 탐지 프레임 번호
+        self.original_video_size: Optional[Tuple[int, int]] = None  # 원본 영상 크기 (확대 방지용)
 
         # 모델 및 로거 초기화 (프레임 스킵: 5프레임마다 한 번만 추론 - 성능과 정확도 균형)
         self.inferencer = AiVadInferencer(device="cuda", skip_frames=5)  # 5프레임마다 추론 (실제 추론이 실행되도록)
@@ -917,6 +922,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.inferencer.yolo_frame_counter = 0  # YOLO 프레임 카운터 리셋
             self.frame_number = 0
             self.last_anomaly_frame = -1
+            self.original_video_size = None  # 새 비디오 선택 시 원본 크기 초기화
+            self.current_frame = None  # 현재 프레임도 초기화
 
     def on_load_checkpoint(self) -> None:
         """체크포인트 로드"""
@@ -1012,7 +1019,10 @@ class MainWindow(QtWidgets.QMainWindow):
         
         self.last_anomaly_frame = self.frame_number
         
-        # 1. 팝업 알림
+        # 1. 빨간 테두리 먼저 표시 (팝업이 모달이라 OK를 누르기 전까지 다음 코드가 실행되지 않으므로 먼저 표시)
+        self._show_anomaly_border()
+        
+        # 2. 팝업 알림 (비모달로 표시 - OK를 누르지 않아도 빨간 테두리는 이미 표시됨)
         anomaly_type = info.get("anomaly_type", "이상")
         msg = QtWidgets.QMessageBox(self)
         msg.setIcon(QtWidgets.QMessageBox.Icon.Warning)
@@ -1020,9 +1030,10 @@ class MainWindow(QtWidgets.QMainWindow):
         msg.setText(f"이상상황이 탐지되었습니다!")
         msg.setInformativeText(f"유형: {anomaly_type}\n점수: {score:.3f}\n프레임: {self.frame_number}")
         msg.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Ok)
-        msg.exec()
+        msg.setModal(False)  # 비모달로 설정 - OK를 누르지 않아도 계속 진행
+        msg.open()  # exec() 대신 open() 사용 - 비동기로 표시
 
-        # 2. 로그 저장
+        # 3. 로그 저장
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
         screenshot_path = self.logger.save_screenshot(frame, timestamp)
         
@@ -1047,8 +1058,7 @@ class MainWindow(QtWidgets.QMainWindow):
             location=location
         )
 
-        # 3. 빨간 테두리 표시 (1초간)
-        self._show_anomaly_border()
+        # 빨간 테두리는 이미 위에서 표시됨
 
     def _show_anomaly_border(self) -> None:
         """빨간 테두리 표시"""
@@ -1085,13 +1095,38 @@ class MainWindow(QtWidgets.QMainWindow):
         self.current_frame = frame_bgr.copy()
         
         h, w = frame_bgr.shape[:2]
+        
+        # 원본 영상 크기 저장 (첫 프레임에서만)
+        if self.original_video_size is None:
+            self.original_video_size = (w, h)
+        
         rgb = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2RGB)
         qimg = QtGui.QImage(rgb.data, w, h, 3 * w, QtGui.QImage.Format.Format_RGB888)
         pixmap = QtGui.QPixmap.fromImage(qimg)
         
-        # 비디오 크기를 라벨 크기에 맞춰 스케일 (최대 크기 제한 없음)
+        # 비디오 크기를 라벨 크기에 맞춰 스케일하되, 원본 크기 이상으로 확대하지 않음 (엄격히 제한)
+        label_size = self.video_label.size()
+        
+        # 원본 크기 이상으로 확대되지 않도록 엄격히 제한
+        if self.original_video_size:
+            # 원본 크기를 절대 넘지 않도록 제한
+            orig_w, orig_h = self.original_video_size
+            max_width = min(label_size.width(), orig_w)
+            max_height = min(label_size.height(), orig_h)
+            
+            # 종횡비 유지하며 원본 크기 이하로만 스케일
+            scale_w = max_width / orig_w
+            scale_h = max_height / orig_h
+            scale = min(scale_w, scale_h, 1.0)  # 1.0 이하로만 스케일 (확대 방지)
+            
+            target_width = int(orig_w * scale)
+            target_height = int(orig_h * scale)
+            target_size = QtCore.QSize(target_width, target_height)
+        else:
+            target_size = label_size
+        
         pixmap = pixmap.scaled(
-            self.video_label.size(), 
+            target_size, 
             QtCore.Qt.AspectRatioMode.KeepAspectRatio, 
             QtCore.Qt.TransformationMode.SmoothTransformation
         )
@@ -1100,13 +1135,31 @@ class MainWindow(QtWidgets.QMainWindow):
     def resizeEvent(self, event: QtGui.QResizeEvent) -> None:
         """리사이즈 이벤트"""
         # 원본 프레임이 있으면 원본에서 다시 스케일 (이미 스케일된 pixmap을 다시 스케일하지 않음)
-        if self.current_frame is not None:
+        if self.current_frame is not None and self.original_video_size is not None:
             h, w = self.current_frame.shape[:2]
             rgb = cv2.cvtColor(self.current_frame, cv2.COLOR_BGR2RGB)
             qimg = QtGui.QImage(rgb.data, w, h, 3 * w, QtGui.QImage.Format.Format_RGB888)
             pixmap = QtGui.QPixmap.fromImage(qimg)
+            
+            # 비디오 크기를 라벨 크기에 맞춰 스케일하되, 원본 크기 이상으로 확대하지 않음 (엄격히 제한)
+            label_size = self.video_label.size()
+            
+            # 원본 크기 이상으로 확대되지 않도록 엄격히 제한
+            orig_w, orig_h = self.original_video_size
+            max_width = min(label_size.width(), orig_w)
+            max_height = min(label_size.height(), orig_h)
+            
+            # 종횡비 유지하며 원본 크기 이하로만 스케일
+            scale_w = max_width / orig_w
+            scale_h = max_height / orig_h
+            scale = min(scale_w, scale_h, 1.0)  # 1.0 이하로만 스케일 (확대 방지)
+            
+            target_width = int(orig_w * scale)
+            target_height = int(orig_h * scale)
+            target_size = QtCore.QSize(target_width, target_height)
+            
             pixmap = pixmap.scaled(
-                self.video_label.size(), 
+                target_size, 
                 QtCore.Qt.AspectRatioMode.KeepAspectRatio, 
                 QtCore.Qt.TransformationMode.SmoothTransformation
             )
