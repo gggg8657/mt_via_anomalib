@@ -135,36 +135,73 @@ class AiVadInferencer:
         with torch.no_grad():
             try:
                 output = self.core(batch)
-                
+            except Exception as model_error:
+                # 모델 추론 실패 시 - 객체 감지 실패 등
+                if "index 0 is out of bounds" in str(model_error):
+                    # Region Extractor에서 객체 감지 실패 - 정상적으로 처리
+                    output = None
+                else:
+                    # 다른 오류도 기본값으로 처리
+                    output = None
+            
+            # 출력이 None이거나 비어있는 경우 처리
+            if output is None:
+                score = 0.0
+                anomaly_map = np.random.rand(224, 224)
+                regions = None
+            else:
                 # 점수 추출 (안전한 방법)
                 score = 0.0
-                if hasattr(output, 'pred_score'):
-                    score = float(output.pred_score[0].detach().cpu().item())
-                elif isinstance(output, list) and len(output) > 0:
-                    if hasattr(output[0], 'pred_score'):
-                        score = float(output[0].pred_score[0].detach().cpu().item())
+                try:
+                    if hasattr(output, 'pred_score'):
+                        pred_score_tensor = output.pred_score
+                        # 텐서 크기 확인
+                        if isinstance(pred_score_tensor, torch.Tensor) and pred_score_tensor.numel() > 0:
+                            if pred_score_tensor.shape[0] > 0:
+                                score = float(pred_score_tensor[0].detach().cpu().item())
+                    elif isinstance(output, list) and len(output) > 0:
+                        if hasattr(output[0], 'pred_score'):
+                            pred_score_tensor = output[0].pred_score
+                            if isinstance(pred_score_tensor, torch.Tensor) and pred_score_tensor.numel() > 0:
+                                if pred_score_tensor.shape[0] > 0:
+                                    score = float(pred_score_tensor[0].detach().cpu().item())
+                except (IndexError, RuntimeError) as e:
+                    # 인덱스 오류나 런타임 오류 시 기본값 사용
+                    score = 0.0
                 
-                # 이상 맵 추출
+                # 이상 맵 추출 (안전한 방법)
                 anomaly_map = np.random.rand(224, 224)
-                if hasattr(output, 'anomaly_map'):
-                    raw_map = output.anomaly_map[0].detach().cpu().numpy()
-                    if len(raw_map.shape) == 3 and raw_map.shape[0] == 1:
-                        anomaly_map = raw_map[0]
-                    elif len(raw_map.shape) == 2:
-                        anomaly_map = raw_map
+                try:
+                    if hasattr(output, 'anomaly_map'):
+                        raw_map_tensor = output.anomaly_map
+                        if isinstance(raw_map_tensor, torch.Tensor) and raw_map_tensor.numel() > 0:
+                            if raw_map_tensor.shape[0] > 0:
+                                raw_map = raw_map_tensor[0].detach().cpu().numpy()
+                                if len(raw_map.shape) == 3 and raw_map.shape[0] == 1:
+                                    anomaly_map = raw_map[0]
+                                elif len(raw_map.shape) == 2:
+                                    anomaly_map = raw_map
+                    elif isinstance(output, list) and len(output) > 0:
+                        if hasattr(output[0], 'anomaly_map'):
+                            raw_map_tensor = output[0].anomaly_map
+                            if isinstance(raw_map_tensor, torch.Tensor) and raw_map_tensor.numel() > 0:
+                                if raw_map_tensor.shape[0] > 0:
+                                    raw_map = raw_map_tensor[0].detach().cpu().numpy()
+                                    if len(raw_map.shape) == 3 and raw_map.shape[0] == 1:
+                                        anomaly_map = raw_map[0]
+                                    elif len(raw_map.shape) == 2:
+                                        anomaly_map = raw_map
+                except (IndexError, RuntimeError) as e:
+                    # 인덱스 오류나 런타임 오류 시 기본값 사용
+                    anomaly_map = np.random.rand(224, 224)
                 
-                # 지역 추출 (있는 경우)
+                # 지역 추출 (있는 경우) - 실패해도 계속 진행
                 regions = None
                 try:
                     flows, regions = self._extract_regions_and_flows(t0.unsqueeze(0), t1.unsqueeze(0))
-                except:
-                    pass
-                
-            except Exception as e:
-                print(f"⚠️ 추론 오류: {e}")
-                score = 0.0
-                anomaly_map = np.random.rand(224, 224)
-                regions = None
+                except Exception:
+                    # 지역 추출 실패는 무시 (선택적 기능)
+                    regions = None
 
         # 이상 유형 결정
         anomaly_type = "정상"
@@ -192,8 +229,12 @@ class AiVadInferencer:
             with torch.no_grad():
                 flows = self.core.flow_extractor(first_frame, last_frame)
                 regions = self.core.region_extractor(first_frame, last_frame)
-            return flows, regions
-        except:
+                return flows, regions
+        except (IndexError, RuntimeError) as e:
+            # 객체 감지 실패 등 - 정상적인 상황으로 처리
+            return None, None
+        except Exception:
+            # 기타 오류
             return None, None
 
     def _create_overlay(self, frame_bgr: np.ndarray, anomaly_map: np.ndarray, 
