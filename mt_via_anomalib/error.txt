@@ -4737,3 +4737,26 @@ GPU: NVIDIA GeForce RTX 4090
 4. 움직임 감지된 비디오 우선 처리
 5. Density Estimator로 이상 탐지 준비
 6. UI에서 'aivad_directory_learned.ckpt' 로드하여 테스트
+
+
+ create mode 100644 mt_via_anomalib/train_aivad_clean.py
+(mt_p310) PS C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib> cd .\mt_via_anomalib\
+(mt_p310) PS C:\Users\User\PycharmProjects\pythonProject1\mt_via_anomalib\mt_via_anomalib> python .\aivad_demo_ui.py
+⚠️ 추론 오류: index 0 is out of bounds for dimension 0 with size 0
+⚠️ 추론 오류: index 0 is out of bounds for dimension 0 with size 0
+⚠️ 추론 오류: index 0 is out of bounds for dimension 0 with size 0
+⚠️ 추론 오류: index 0 is out of bounds for dimension 0 with size 0
+⚠️ 추론 오류: index 0 is out of bounds for dimension 0 with size 0
+⚠️ 추론 오류: index 0 is out of bounds for dimension 0 with size 0
+⚠️ 추론 오류: index 0 is out of bounds for dimension 0 with size 0
+⚠️ 추론 오류: index 0 is out of bounds for dimension 0 with size 0
+⚠️ 추론 오류: index 0 is out of bounds for dimension 0 with size 0
+⚠️ 추론 오류: index 0 is out of bounds for dimension 0 with size 0
+⚠️ 추론 오류: index 0 is out of bounds for dimension 0 with size 0
+⚠️ 추론 오류: index 0 is out of bounds for dimension 0 with size 0
+⚠️ 추론 오류: index 0 is out of bounds for dimension 0 with size 0
+⚠️ 추론 오류: index 0 is out of bounds for dimension 0 with size 0
+⚠️ 추론 오류: index 0 is out of bounds for dimension 0 with size 0
+⚠️ 추론 오류: index 0 is out of bounds for dimension 0 with size 0
+⚠️ 추론 오류: index 0 is out of bounds for dimension 0 with size 0
+⚠️ 추론 오류: index 0 is out of bounds for dimension 0 with size 0
