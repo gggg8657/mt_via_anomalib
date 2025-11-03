@@ -122,6 +122,10 @@ class AiVadInferencer:
         # 마지막 추론 결과 캐싱 (성능 최적화)
         self.last_result = None
         self.last_score = 0.0
+        
+        # 시각화 설정
+        self.show_heatmap = False  # 기본값: 히트맵 비활성화 (깔끔한 화면)
+        self.heatmap_alpha = 0.3  # 히트맵 투명도 (비활성화되어 있어도 설정값 유지)
 
     def load_checkpoint(self, ckpt_path: str) -> None:
         """체크포인트 로드"""
@@ -274,19 +278,24 @@ class AiVadInferencer:
             return None, None
 
     def _create_overlay(self, frame_bgr: np.ndarray, anomaly_map: np.ndarray, 
-                       regions: Any, score: float) -> np.ndarray:
+                       regions: Any, score: float, threshold: float = 0.5) -> np.ndarray:
         """오버레이 생성"""
         overlay = frame_bgr.copy()
         h, w = frame_bgr.shape[:2]
 
-        # 히트맵 오버레이
-        if anomaly_map is not None:
+        # 히트맵 오버레이 (선택적 표시)
+        if self.show_heatmap and anomaly_map is not None:
             min_v, max_v = float(np.min(anomaly_map)), float(np.max(anomaly_map))
             if max_v - min_v > 1e-6:
                 norm = (anomaly_map - min_v) / (max_v - min_v)
                 norm_resized = cv2.resize(norm, (w, h), interpolation=cv2.INTER_LINEAR)
                 heatmap = cv2.applyColorMap((norm_resized * 255).astype(np.uint8), cv2.COLORMAP_JET)
-                overlay = cv2.addWeighted(overlay, 0.7, heatmap, 0.3, 0)
+                overlay = cv2.addWeighted(overlay, 1 - self.heatmap_alpha, heatmap, self.heatmap_alpha, 0)
+        
+        # 이상 탐지 시에만 빨간 테두리 표시 (히트맵 대신)
+        if score >= threshold:  # 임계값 이상일 때만
+            # 화면 전체에 빨간 테두리 추가
+            cv2.rectangle(overlay, (0, 0), (w-1, h-1), (0, 0, 255), 3)
 
         # 박스 오버레이 (있는 경우)
         if regions is not None and len(regions) > 0:
@@ -446,6 +455,29 @@ class MainWindow(QtWidgets.QMainWindow):
         perf_group.setLayout(perf_layout)
         controls.addWidget(perf_group)
 
+        # 시각화 설정
+        viz_group = QtWidgets.QGroupBox("시각화 설정")
+        viz_layout = QtWidgets.QVBoxLayout()
+        
+        # 히트맵 표시 옵션
+        self.show_heatmap_cb = QtWidgets.QCheckBox("히트맵 표시 (기름 필터 효과)")
+        self.show_heatmap_cb.setChecked(False)  # 기본값: 비활성화
+        self.show_heatmap_cb.setToolTip("체크하면 이상 영역에 컬러 맵 오버레이가 표시됩니다")
+        viz_layout.addWidget(self.show_heatmap_cb)
+        
+        # 히트맵 투명도
+        heatmap_alpha_layout = QtWidgets.QHBoxLayout()
+        heatmap_alpha_layout.addWidget(QtWidgets.QLabel("히트맵 투명도:"))
+        self.heatmap_alpha_slider = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
+        self.heatmap_alpha_slider.setRange(10, 90)
+        self.heatmap_alpha_slider.setValue(30)
+        self.heatmap_alpha_slider.setToolTip("히트맵 투명도 (10-90%)")
+        heatmap_alpha_layout.addWidget(self.heatmap_alpha_slider)
+        viz_layout.addLayout(heatmap_alpha_layout)
+        
+        viz_group.setLayout(viz_layout)
+        controls.addWidget(viz_group)
+
         layout.addLayout(controls)
 
         # 비디오 표시 영역
@@ -487,6 +519,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.btn_stop.clicked.connect(self.on_stop)
         self.threshold_slider.valueChanged.connect(self.on_threshold_changed)
         self.skip_frames_spinbox.valueChanged.connect(self.on_skip_frames_changed)
+        self.show_heatmap_cb.toggled.connect(self.on_show_heatmap_toggled)
+        self.heatmap_alpha_slider.valueChanged.connect(self.on_heatmap_alpha_changed)
 
     def on_threshold_changed(self, value: int) -> None:
         """임계치 변경"""
@@ -498,6 +532,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self.inferencer.skip_frames = value
         self.inferencer.frame_counter = 0  # 리셋
         self.status_message(f"프레임 스킵: {value}프레임마다 추론")
+    
+    def on_show_heatmap_toggled(self, checked: bool) -> None:
+        """히트맵 표시 토글"""
+        self.inferencer.show_heatmap = checked
+        self.status_message("히트맵 표시: " + ("켜짐" if checked else "꺼짐"))
+    
+    def on_heatmap_alpha_changed(self, value: int) -> None:
+        """히트맵 투명도 변경"""
+        self.inferencer.heatmap_alpha = float(value) / 100.0
 
     def on_select_video(self) -> None:
         """비디오 파일 선택"""
