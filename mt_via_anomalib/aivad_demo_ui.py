@@ -78,10 +78,13 @@ class VideoReaderThread(QtCore.QThread):
 
 class AiVadInferencer:
     """AiVAD 모델 추론 클래스"""
-    def __init__(self, device: str = "cuda") -> None:
+    def __init__(self, device: str = "cuda", skip_frames: int = 2) -> None:
         from anomalib.models.video import AiVad
 
         self.device = torch.device(device if torch.cuda.is_available() and device == "cuda" else "cpu")
+        self.skip_frames = skip_frames  # N 프레임마다 한 번만 추론
+        self.frame_counter = 0
+        
         self.model = AiVad(
             use_velocity_features=True,
             use_pose_features=True,
@@ -97,9 +100,20 @@ class AiVadInferencer:
         self.model.eval().to(self.device)
         self.core = self.model.model
         self.core.eval().to(self.device)
+        
+        # 최적화: torch.compile 사용 (PyTorch 2.0+)
+        try:
+            if hasattr(torch, 'compile'):
+                self.core = torch.compile(self.core, mode='reduce-overhead')
+        except:
+            pass
 
         # 프레임 버퍼링 (2프레임 필요)
         self.frame_buffer = deque(maxlen=2)
+        
+        # 마지막 추론 결과 캐싱 (성능 최적화)
+        self.last_result = None
+        self.last_score = 0.0
 
     def load_checkpoint(self, ckpt_path: str) -> None:
         """체크포인트 로드"""
@@ -121,10 +135,18 @@ class AiVadInferencer:
         return torch.from_numpy(chw)
 
     def infer_on_frame(self, frame_bgr: np.ndarray) -> Tuple[np.ndarray, float, Dict[str, Any]]:
-        """프레임별 추론"""
+        """프레임별 추론 (최적화: 프레임 스킵 적용)"""
         self.frame_buffer.append(frame_bgr)
+        self.frame_counter += 1
         
         if len(self.frame_buffer) < 2:
+            return frame_bgr, 0.0, {"regions": None, "anomaly_type": "정상"}
+        
+        # 프레임 스킵: N 프레임마다 한 번만 추론
+        if self.frame_counter % self.skip_frames != 0:
+            # 추론하지 않고 마지막 결과 반환 (또는 원본 프레임)
+            if self.last_result is not None:
+                return self.last_result, self.last_score, {"regions": None, "anomaly_type": "정상"}
             return frame_bgr, 0.0, {"regions": None, "anomaly_type": "정상"}
 
         # 2프레임 클립 구성
@@ -195,13 +217,13 @@ class AiVadInferencer:
                     # 인덱스 오류나 런타임 오류 시 기본값 사용
                     anomaly_map = np.random.rand(224, 224)
                 
-                # 지역 추출 (있는 경우) - 실패해도 계속 진행
+                # 지역 추출 비활성화 (성능 최적화) - 필요시 주석 해제
+                # 지역 추출은 매우 느리므로 실시간 처리에서는 생략
                 regions = None
-                try:
-                    flows, regions = self._extract_regions_and_flows(t0.unsqueeze(0), t1.unsqueeze(0))
-                except Exception:
-                    # 지역 추출 실패는 무시 (선택적 기능)
-                    regions = None
+                # try:
+                #     flows, regions = self._extract_regions_and_flows(t0.unsqueeze(0), t1.unsqueeze(0))
+                # except Exception:
+                #     regions = None
 
         # 이상 유형 결정
         anomaly_type = "정상"
@@ -220,6 +242,10 @@ class AiVadInferencer:
             "anomaly_type": anomaly_type,
             "anomaly_map": anomaly_map,
         }
+        
+        # 결과 캐싱 (성능 최적화)
+        self.last_result = overlay
+        self.last_score = score
 
         return overlay, score, info
 
@@ -320,8 +346,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.frame_number = 0
         self.last_anomaly_frame = -1  # 마지막 이상 탐지 프레임 번호
 
-        # 모델 및 로거 초기화
-        self.inferencer = AiVadInferencer(device="cuda")
+        # 모델 및 로거 초기화 (프레임 스킵: 2프레임마다 한 번만 추론)
+        self.inferencer = AiVadInferencer(device="cuda", skip_frames=3)  # 3프레임마다 추론
         self.logger = AnomalyLogger()
 
         # UI 구성
@@ -392,6 +418,24 @@ class MainWindow(QtWidgets.QMainWindow):
         threshold_group.setLayout(threshold_layout)
         controls.addWidget(threshold_group)
 
+        # 성능 최적화 설정
+        perf_group = QtWidgets.QGroupBox("성능 최적화")
+        perf_layout = QtWidgets.QVBoxLayout()
+        
+        # 프레임 스킵 설정
+        skip_layout = QtWidgets.QHBoxLayout()
+        skip_layout.addWidget(QtWidgets.QLabel("프레임 스킵:"))
+        self.skip_frames_spinbox = QtWidgets.QSpinBox()
+        self.skip_frames_spinbox.setRange(1, 10)
+        self.skip_frames_spinbox.setValue(3)
+        self.skip_frames_spinbox.setToolTip("N 프레임마다 한 번만 추론 (높을수록 빠름, 낮을수록 정확)")
+        skip_layout.addWidget(self.skip_frames_spinbox)
+        skip_layout.addWidget(QtWidgets.QLabel("프레임마다"))
+        perf_layout.addLayout(skip_layout)
+        
+        perf_group.setLayout(perf_layout)
+        controls.addWidget(perf_group)
+
         layout.addLayout(controls)
 
         # 비디오 표시 영역
@@ -432,11 +476,18 @@ class MainWindow(QtWidgets.QMainWindow):
         self.btn_pause.clicked.connect(self.on_pause)
         self.btn_stop.clicked.connect(self.on_stop)
         self.threshold_slider.valueChanged.connect(self.on_threshold_changed)
+        self.skip_frames_spinbox.valueChanged.connect(self.on_skip_frames_changed)
 
     def on_threshold_changed(self, value: int) -> None:
         """임계치 변경"""
         self.threshold = float(value) / 100.0
         self.lbl_threshold.setText(f"임계치: {self.threshold:.2f}")
+    
+    def on_skip_frames_changed(self, value: int) -> None:
+        """프레임 스킵 변경"""
+        self.inferencer.skip_frames = value
+        self.inferencer.frame_counter = 0  # 리셋
+        self.status_message(f"프레임 스킵: {value}프레임마다 추론")
 
     def on_select_video(self) -> None:
         """비디오 파일 선택"""
@@ -450,6 +501,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.lbl_video_path.setText(f"선택된 비디오: {filename}")
             self.status_message(f"비디오 선택: {filename}")
             self.inferencer.frame_buffer.clear()
+            self.inferencer.frame_counter = 0  # 프레임 카운터 리셋
             self.frame_number = 0
             self.last_anomaly_frame = -1
 
@@ -479,7 +531,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.status_message("재생")
             return
 
-        self.reader = VideoReaderThread(self.video_path, fps_limit=30.0)
+        self.reader = VideoReaderThread(self.video_path, fps_limit=15.0)  # FPS 제한 (성능 최적화)
         self.reader.frameReady.connect(self.on_frame)
         self.reader.finished.connect(self.on_reader_finished)
         self.reader.start()
