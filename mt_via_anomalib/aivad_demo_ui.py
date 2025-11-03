@@ -109,6 +109,9 @@ class AiVadInferencer:
         
         # Region Extractor는 그대로 사용 (amax 오류 방지를 위해 필요)
         # 대신 파라미터 조정으로 성능 최적화
+        
+        # 체크포인트 자동 로드 시도 (있는 경우)
+        self._try_load_checkpoint()
 
         # 프레임 버퍼링 (2프레임 필요)
         self.frame_buffer = deque(maxlen=2)
@@ -116,6 +119,9 @@ class AiVadInferencer:
         # 마지막 추론 결과 캐싱 (성능 최적화)
         self.last_result = None
         self.last_score = 0.0
+        
+        # 프레임 간 차이 기반 이상 점수 계산 (간단한 대안)
+        self.prev_frame_for_diff = None
         
         # 시각화 설정
         self.show_heatmap = False  # 기본값: 히트맵 비활성화 (깔끔한 화면)
@@ -185,6 +191,30 @@ class AiVadInferencer:
             print(f"⚠️ YOLO 객체 감지 오류: {e}")
             return self.last_yolo_detections if self.last_yolo_detections else []
     
+    def _try_load_checkpoint(self) -> None:
+        """체크포인트 자동 로드 시도"""
+        # 여러 체크포인트 파일 시도
+        possible_checkpoints = [
+            "aivad_extreme_learned.ckpt",
+            "aivad_proper_checkpoint.ckpt",
+            "../aivad_extreme_learned.ckpt",
+            "../aivad_proper_checkpoint.ckpt",
+        ]
+        
+        for ckpt_path in possible_checkpoints:
+            if os.path.exists(ckpt_path):
+                try:
+                    print(f"🔍 체크포인트 발견: {ckpt_path}, 로드 시도 중...")
+                    self.load_checkpoint(ckpt_path)
+                    print(f"✅ 체크포인트 자동 로드 성공: {ckpt_path}")
+                    return
+                except Exception as e:
+                    print(f"⚠️ 체크포인트 로드 실패 ({ckpt_path}): {e}")
+                    continue
+        
+        print("ℹ️ 사용 가능한 체크포인트를 찾지 못했습니다. 기본 모델을 사용합니다.")
+        print("💡 체크포인트를 수동으로 로드하려면 UI에서 '체크포인트 로드' 버튼을 사용하세요.")
+    
     def load_checkpoint(self, ckpt_path: str) -> None:
         """체크포인트 로드"""
         from anomalib.models.video import AiVad
@@ -194,6 +224,27 @@ class AiVadInferencer:
         self.core = self.model.model
         self.core.eval().to(self.device)
 
+    def _calculate_frame_difference_score(self, frame_bgr: np.ndarray) -> float:
+        """프레임 간 차이 기반 이상 점수 계산 (간단한 대안)"""
+        if self.prev_frame_for_diff is None:
+            self.prev_frame_for_diff = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2GRAY)
+            return 0.0
+        
+        # 현재 프레임을 그레이스케일로 변환
+        curr_gray = cv2.cvtColor(frame_bgr, cv2.COLOR_BGR2GRAY)
+        
+        # 프레임 간 차이 계산
+        diff = cv2.absdiff(self.prev_frame_for_diff, curr_gray)
+        diff_score = np.mean(diff) / 255.0  # 0.0 ~ 1.0 범위로 정규화
+        
+        # 차이가 클수록 이상 점수 증가 (0.1 ~ 0.7 범위로 조정)
+        anomaly_score = min(0.7, max(0.1, diff_score * 3.0))
+        
+        # 이전 프레임 업데이트
+        self.prev_frame_for_diff = curr_gray
+        
+        return float(anomaly_score)
+    
     @staticmethod
     def _bgr_to_chw_float_tensor(frame_bgr: np.ndarray, target_size: int = 160) -> torch.Tensor:
         """BGR 프레임을 CHW 텐서로 변환 (해상도 최적화)"""
@@ -239,21 +290,24 @@ class AiVadInferencer:
                 error_str = str(model_error)
                 print(f"⚠️ [추론 실패] 오류: {error_str[:100]}")
                 
-                # amax 오류나 index 오류 모두 빈 텐서 문제로 처리
-                if "amax" in error_str or "index 0 is out of bounds" in error_str:
-                    # 객체 감지 실패 - 빈 텐서로 인한 오류
-                    # 기본 점수 반환 (0.0 또는 작은 랜덤 값)
-                    print(f"⚠️ [객체 감지 실패] 빈 텐서 오류 - 기본 점수 사용")
-                    # 더미 출력 생성하여 점수 계산 계속 진행
+                # 모든 추론 오류를 안전하게 처리
+                # cdist, amax, index 오류 모두 빈 텐서 또는 학습 부족 문제
+                if any(keyword in error_str for keyword in ["cdist", "amax", "index 0 is out of bounds", "reduction dim"]):
+                    print(f"⚠️ [모델 오류 처리] {error_str[:50]}... - 프레임 간 차이 기반 점수 사용")
+                    # 학습되지 않은 모델이므로 프레임 간 차이 기반 점수 생성
+                    frame_diff_score = self._calculate_frame_difference_score(frame_bgr)
+                    print(f"💡 [프레임 차이 점수] {frame_diff_score:.4f} (모델 미학습 상태 - 체크포인트 필요)")
+                    
                     class DummyOutput:
-                        def __init__(self, device):
-                            # 기본 점수: 0.0 (정상)
-                            self.pred_score = torch.tensor([0.0], device=device)
+                        def __init__(self, device, score_value):
+                            # 프레임 차이 기반 점수
+                            self.pred_score = torch.tensor([score_value], device=device)
                             # 기본 이상 맵
-                            self.anomaly_map = torch.zeros(1, 160, 160, device=device)
-                    output = DummyOutput(self.device)
+                            self.anomaly_map = torch.rand(1, 160, 160, device=device) * score_value
+                    output = DummyOutput(self.device, frame_diff_score)
                 else:
-                    # 다른 오류도 기본값으로 처리
+                    # 알 수 없는 오류도 기본값으로 처리
+                    print(f"⚠️ [알 수 없는 오류] {error_str[:50]}... - 기본값 사용")
                     output = None
             
             # 출력이 None이거나 비어있는 경우 처리 - 해상도 조정
@@ -263,28 +317,47 @@ class AiVadInferencer:
                 anomaly_map = np.random.rand(160, 160)
                 regions = None
             else:
-                # 점수 추출 (안전한 방법)
+                # 점수 추출 (안전한 방법) - 더 상세한 로깅
                 score = 0.0
                 try:
+                    # 출력 속성 확인
+                    if hasattr(output, '__dict__'):
+                        print(f"📋 [출력 속성] {list(output.__dict__.keys())[:10]}")
+                    
                     if hasattr(output, 'pred_score'):
                         pred_score_tensor = output.pred_score
+                        print(f"🔍 [pred_score 텐서] shape: {pred_score_tensor.shape}, dtype: {pred_score_tensor.dtype}")
                         # 텐서 크기 확인
                         if isinstance(pred_score_tensor, torch.Tensor) and pred_score_tensor.numel() > 0:
                             if pred_score_tensor.shape[0] > 0:
                                 score = float(pred_score_tensor[0].detach().cpu().item())
-                                print(f"📊 [점수 추출] pred_score: {score:.4f}")
+                                print(f"✅ [점수 추출 성공] pred_score: {score:.4f}")
+                            else:
+                                print(f"⚠️ [점수 추출] pred_score shape[0] = 0")
+                        else:
+                            print(f"⚠️ [점수 추출] pred_score 텐서가 비어있음")
+                    elif hasattr(output, 'anomaly_score'):
+                        # anomaly_score도 확인
+                        anomaly_score_tensor = output.anomaly_score
+                        if isinstance(anomaly_score_tensor, torch.Tensor) and anomaly_score_tensor.numel() > 0:
+                            if anomaly_score_tensor.shape[0] > 0:
+                                score = float(anomaly_score_tensor[0].detach().cpu().item())
+                                print(f"✅ [점수 추출 성공] anomaly_score: {score:.4f}")
                     elif isinstance(output, list) and len(output) > 0:
                         if hasattr(output[0], 'pred_score'):
                             pred_score_tensor = output[0].pred_score
                             if isinstance(pred_score_tensor, torch.Tensor) and pred_score_tensor.numel() > 0:
                                 if pred_score_tensor.shape[0] > 0:
                                     score = float(pred_score_tensor[0].detach().cpu().item())
-                                    print(f"📊 [점수 추출] list[0].pred_score: {score:.4f}")
+                                    print(f"✅ [점수 추출 성공] list[0].pred_score: {score:.4f}")
                     else:
-                        print(f"⚠️ [점수 추출 실패] 출력에 pred_score 속성이 없음")
+                        print(f"⚠️ [점수 추출 실패] 출력에 pred_score/anomaly_score 속성이 없음")
+                        print(f"   출력 타입: {type(output)}, 출력: {str(output)[:200]}")
                 except (IndexError, RuntimeError) as e:
                     # 인덱스 오류나 런타임 오류 시 기본값 사용
                     print(f"❌ [점수 추출 오류] {e}")
+                    import traceback
+                    traceback.print_exc()
                     score = 0.0
                 
                 # 이상 맵 추출 (안전한 방법) - 해상도 조정 (160x160)
@@ -579,8 +652,8 @@ class MainWindow(QtWidgets.QMainWindow):
         threshold_group = QtWidgets.QGroupBox("임계치 설정")
         threshold_layout = QtWidgets.QVBoxLayout()
         self.threshold_slider = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
-        self.threshold_slider.setRange(10, 100)
-        self.threshold_slider.setValue(int(self.threshold * 100))
+        self.threshold_slider.setRange(1, 100)  # 범위 확대 (0.01 ~ 1.0)
+        self.threshold_slider.setValue(int(self.threshold * 100))  # 기본값 0.3 (30)
         self.lbl_threshold = QtWidgets.QLabel(f"임계치: {self.threshold:.2f}")
         threshold_layout.addWidget(self.lbl_threshold)
         threshold_layout.addWidget(self.threshold_slider)
