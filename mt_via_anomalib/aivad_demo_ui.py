@@ -86,18 +86,18 @@ class AiVadInferencer:
         self.frame_counter = 0
         
         # 실시간 성능 최적화를 위한 모델 설정
-        # box_score_thresh를 높여서 region 추출을 빠르게 실패하게 함 (성능 향상)
+        # 최대한 빠르게 하기 위해 많은 기능 비활성화
         self.model = AiVad(
-            use_velocity_features=True,
-            use_pose_features=True,
-            use_deep_features=True,
-            n_components_velocity=2,
+            use_velocity_features=False,  # 비활성화 - 성능 향상
+            use_pose_features=False,      # 비활성화 - 성능 향상
+            use_deep_features=True,       # 기본 특성만 사용
+            n_components_velocity=1,
             n_neighbors_pose=1,
             n_neighbors_deep=1,
-            box_score_thresh=0.9,  # 높게 설정하여 빠르게 실패 (성능 최적화)
-            min_bbox_area=10000,   # 매우 크게 설정하여 대부분 감지 실패 (성능 최적화)
-            max_bbox_overlap=0.1,  # 낮게 설정하여 중복 제거 빠르게
-            foreground_binary_threshold=100,  # 높게 설정하여 foreground 감지 최소화
+            box_score_thresh=0.99,  # 매우 높게 설정하여 거의 감지 안함 (성능 최적화)
+            min_bbox_area=50000,    # 매우 크게 설정 (성능 최적화)
+            max_bbox_overlap=0.05,  # 매우 낮게 설정
+            foreground_binary_threshold=200,  # 매우 높게 설정하여 foreground 감지 최소화
         )
         self.model.eval().to(self.device)
         self.core = self.model.model
@@ -126,7 +126,71 @@ class AiVadInferencer:
         # 시각화 설정
         self.show_heatmap = False  # 기본값: 히트맵 비활성화 (깔끔한 화면)
         self.heatmap_alpha = 0.3  # 히트맵 투명도 (비활성화되어 있어도 설정값 유지)
+        
+        # YOLO 객체 감지 모델 초기화 (선택적)
+        self.yolo_model = None
+        self.use_yolo = False
+        self.yolo_skip_frames = 5  # YOLO는 5프레임마다 한 번만 실행 (성능 최적화)
+        self.yolo_frame_counter = 0
+        self.last_yolo_detections = []  # 마지막 YOLO 결과 캐싱
+        self._init_yolo()
 
+    def _init_yolo(self) -> None:
+        """YOLO 모델 초기화 (선택적)"""
+        try:
+            from ultralytics import YOLO
+            # YOLOv8n (nano - 가장 빠름) 사용
+            self.yolo_model = YOLO('yolov8n.pt')  # 자동 다운로드됨
+            self.use_yolo = True
+            print("✅ YOLO 모델 로드 완료 (yolov8n.pt)")
+        except ImportError:
+            print("⚠️ ultralytics 패키지가 없습니다. YOLO 기능은 사용할 수 없습니다.")
+            print("💡 설치: pip install ultralytics")
+            self.use_yolo = False
+        except Exception as e:
+            print(f"⚠️ YOLO 모델 로드 실패: {e}")
+            self.use_yolo = False
+    
+    def detect_objects(self, frame_bgr: np.ndarray, force: bool = False) -> list:
+        """YOLO로 객체 감지 (프레임 스킵 최적화)"""
+        if not self.use_yolo or self.yolo_model is None:
+            return []
+        
+        # 프레임 스킵: YOLO는 더 적게 실행 (AiVAD보다 느릴 수 있음)
+        self.yolo_frame_counter += 1
+        if not force and self.yolo_frame_counter % self.yolo_skip_frames != 0:
+            # 마지막 결과 반환 (캐싱)
+            return self.last_yolo_detections
+        
+        try:
+            # 해상도 낮춰서 더 빠르게 처리 (320x320 또는 416x416)
+            # imgsz를 작게 하면 더 빠름
+            results = self.yolo_model(frame_bgr, verbose=False, imgsz=320, conf=0.5)
+            detections = []
+            for result in results:
+                boxes = result.boxes
+                for box in boxes:
+                    # 감지 정보 추출
+                    cls = int(box.cls[0])
+                    conf = float(box.conf[0])
+                    x1, y1, x2, y2 = box.xyxy[0].cpu().numpy()
+                    
+                    # 클래스 이름 가져오기
+                    class_name = self.yolo_model.names[cls]
+                    
+                    detections.append({
+                        'class': class_name,
+                        'confidence': conf,
+                        'bbox': [int(x1), int(y1), int(x2), int(y2)]
+                    })
+            
+            # 결과 캐싱
+            self.last_yolo_detections = detections
+            return detections
+        except Exception as e:
+            print(f"⚠️ YOLO 객체 감지 오류: {e}")
+            return self.last_yolo_detections if self.last_yolo_detections else []
+    
     def load_checkpoint(self, ckpt_path: str) -> None:
         """체크포인트 로드"""
         from anomalib.models.video import AiVad
@@ -137,10 +201,11 @@ class AiVadInferencer:
         self.core.eval().to(self.device)
 
     @staticmethod
-    def _bgr_to_chw_float_tensor(frame_bgr: np.ndarray) -> torch.Tensor:
-        """BGR 프레임을 CHW 텐서로 변환"""
-        # 해상도 조정 (224x224)
-        frame_resized = cv2.resize(frame_bgr, (224, 224))
+    def _bgr_to_chw_float_tensor(frame_bgr: np.ndarray, target_size: int = 160) -> torch.Tensor:
+        """BGR 프레임을 CHW 텐서로 변환 (해상도 최적화)"""
+        # 해상도 더 작게 조정 (160x160) - 성능 최적화
+        # 원래 224x224였는데 160x160으로 줄여서 약 2배 빠름
+        frame_resized = cv2.resize(frame_bgr, (target_size, target_size))
         frame_rgb = cv2.cvtColor(frame_resized, cv2.COLOR_BGR2RGB)
         frame_rgb = frame_rgb.astype(np.float32) / 255.0
         chw = np.transpose(frame_rgb, (2, 0, 1))  # (C,H,W)
@@ -161,9 +226,9 @@ class AiVadInferencer:
                 return self.last_result, self.last_score, {"regions": None, "anomaly_type": "정상"}
             return frame_bgr, 0.0, {"regions": None, "anomaly_type": "정상"}
 
-        # 2프레임 클립 구성
-        t0 = self._bgr_to_chw_float_tensor(self.frame_buffer[0])
-        t1 = self._bgr_to_chw_float_tensor(self.frame_buffer[1])
+        # 2프레임 클립 구성 (해상도 최적화: 160x160 사용)
+        t0 = self._bgr_to_chw_float_tensor(self.frame_buffer[0], target_size=160)
+        t1 = self._bgr_to_chw_float_tensor(self.frame_buffer[1], target_size=160)
         batch = torch.stack([t0, t1], dim=0).unsqueeze(0).to(self.device)
 
         with torch.no_grad():
@@ -180,10 +245,10 @@ class AiVadInferencer:
                     # 다른 오류도 기본값으로 처리
                     output = None
             
-            # 출력이 None이거나 비어있는 경우 처리
+            # 출력이 None이거나 비어있는 경우 처리 - 해상도 조정
             if output is None:
                 score = 0.0
-                anomaly_map = np.random.rand(224, 224)
+                anomaly_map = np.random.rand(160, 160)
                 regions = None
             else:
                 # 점수 추출 (안전한 방법)
@@ -205,8 +270,8 @@ class AiVadInferencer:
                     # 인덱스 오류나 런타임 오류 시 기본값 사용
                     score = 0.0
                 
-                # 이상 맵 추출 (안전한 방법)
-                anomaly_map = np.random.rand(224, 224)
+                # 이상 맵 추출 (안전한 방법) - 해상도 조정 (160x160)
+                anomaly_map = np.random.rand(160, 160)
                 try:
                     if hasattr(output, 'anomaly_map'):
                         raw_map_tensor = output.anomaly_map
@@ -228,8 +293,8 @@ class AiVadInferencer:
                                     elif len(raw_map.shape) == 2:
                                         anomaly_map = raw_map
                 except (IndexError, RuntimeError) as e:
-                    # 인덱스 오류나 런타임 오류 시 기본값 사용
-                    anomaly_map = np.random.rand(224, 224)
+                    # 인덱스 오류나 런타임 오류 시 기본값 사용 - 해상도 조정
+                    anomaly_map = np.random.rand(160, 160)
                 
                 # 지역 추출 비활성화 (성능 최적화) - 필요시 주석 해제
                 # 지역 추출은 매우 느리므로 실시간 처리에서는 생략
@@ -279,7 +344,7 @@ class AiVadInferencer:
 
     def _create_overlay(self, frame_bgr: np.ndarray, anomaly_map: np.ndarray, 
                        regions: Any, score: float, threshold: float = 0.5) -> np.ndarray:
-        """오버레이 생성"""
+        """오버레이 생성 (YOLO 객체 감지 포함)"""
         overlay = frame_bgr.copy()
         h, w = frame_bgr.shape[:2]
 
@@ -292,21 +357,100 @@ class AiVadInferencer:
                 heatmap = cv2.applyColorMap((norm_resized * 255).astype(np.uint8), cv2.COLORMAP_JET)
                 overlay = cv2.addWeighted(overlay, 1 - self.heatmap_alpha, heatmap, self.heatmap_alpha, 0)
         
-        # 이상 탐지 시에만 빨간 테두리 표시 (히트맵 대신)
-        if score >= threshold:  # 임계값 이상일 때만
+        # 이상 탐지 시에만 빨간 테두리 표시
+        is_anomaly = score >= threshold
+        if is_anomaly:
             # 화면 전체에 빨간 테두리 추가
             cv2.rectangle(overlay, (0, 0), (w-1, h-1), (0, 0, 255), 3)
 
-        # 박스 오버레이 (있는 경우)
+        # YOLO 객체 감지 및 표시 (프레임 스킵 적용)
+        detected_objects = []
+        if self.use_yolo:
+            # YOLO는 더 적게 실행 (5프레임마다)
+            detections = self.detect_objects(frame_bgr, force=False)
+            detected_objects = [d['class'] for d in detections]
+            
+            for det in detections:
+                x1, y1, x2, y2 = det['bbox']
+                class_name = det['class']
+                conf = det['confidence']
+                
+                # 박스 색상 (이상 탐지 시 빨간색, 정상 시 녹색)
+                color = (0, 0, 255) if is_anomaly else (0, 255, 0)
+                thickness = 2 if is_anomaly else 1
+                
+                # 박스 그리기
+                cv2.rectangle(overlay, (x1, y1), (x2, y2), color, thickness)
+                
+                # 레이블 텍스트
+                label = f"{class_name} {conf:.2f}"
+                if is_anomaly:
+                    label += " ⚠️ 이상!"
+                
+                # 텍스트 배경
+                (text_width, text_height), baseline = cv2.getTextSize(
+                    label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 1
+                )
+                cv2.rectangle(
+                    overlay, 
+                    (x1, y1 - text_height - 5), 
+                    (x1 + text_width, y1), 
+                    color, 
+                    -1
+                )
+                
+                # 텍스트 표시
+                cv2.putText(
+                    overlay, 
+                    label, 
+                    (x1, y1 - 5), 
+                    cv2.FONT_HERSHEY_SIMPLEX, 
+                    0.5, 
+                    (255, 255, 255), 
+                    1
+                )
+
+        # 박스 오버레이 (AiVAD regions - 있는 경우)
         if regions is not None and len(regions) > 0:
             region = regions[0]
             if 'boxes' in region:
                 boxes = region['boxes'].detach().cpu().numpy()
                 for box in boxes:
                     x1, y1, x2, y2 = box.astype(int)
-                    color = (0, 0, 255) if score > 0.5 else (0, 255, 0)
-                    thickness = 2 if score > 0.5 else 1
+                    color = (0, 0, 255) if is_anomaly else (0, 255, 0)
+                    thickness = 2 if is_anomaly else 1
                     cv2.rectangle(overlay, (x1, y1), (x2, y2), color, thickness)
+        
+        # 상단에 감지된 객체 목록 표시
+        if detected_objects:
+            unique_objects = list(set(detected_objects))
+            objects_text = f"감지된 객체: {', '.join(unique_objects)}"
+            if is_anomaly:
+                objects_text += " ⚠️ 이상 행동!"
+            
+            # 텍스트 배경
+            (text_width, text_height), baseline = cv2.getTextSize(
+                objects_text, cv2.FONT_HERSHEY_SIMPLEX, 0.6, 2
+            )
+            cv2.rectangle(
+                overlay,
+                (10, 10),
+                (10 + text_width + 10, 10 + text_height + 10),
+                (0, 0, 0),
+                -1
+            )
+            
+            # 텍스트 색상 (이상 시 빨간색, 정상 시 흰색)
+            text_color = (0, 0, 255) if is_anomaly else (255, 255, 255)
+            cv2.putText(
+                overlay,
+                objects_text,
+                (15, 10 + text_height),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.6,
+                text_color,
+                2
+            )
 
         return overlay
 
@@ -365,8 +509,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.frame_number = 0
         self.last_anomaly_frame = -1  # 마지막 이상 탐지 프레임 번호
 
-        # 모델 및 로거 초기화 (프레임 스킵: 5프레임마다 한 번만 추론 - 성능 최적화)
-        self.inferencer = AiVadInferencer(device="cuda", skip_frames=5)  # 5프레임마다 추론 (더 빠름)
+        # 모델 및 로거 초기화 (프레임 스킵: 15프레임마다 한 번만 추론 - 실시간 성능 최적화)
+        self.inferencer = AiVadInferencer(device="cuda", skip_frames=15)  # 15프레임마다 추론 (최대 성능)
         self.logger = AnomalyLogger()
 
         # UI 구성
@@ -445,8 +589,8 @@ class MainWindow(QtWidgets.QMainWindow):
         skip_layout = QtWidgets.QHBoxLayout()
         skip_layout.addWidget(QtWidgets.QLabel("프레임 스킵:"))
         self.skip_frames_spinbox = QtWidgets.QSpinBox()
-        self.skip_frames_spinbox.setRange(1, 10)
-        self.skip_frames_spinbox.setValue(5)  # 기본값 5프레임마다 추론
+        self.skip_frames_spinbox.setRange(1, 30)  # 범위 확대 (최대 30프레임마다)
+        self.skip_frames_spinbox.setValue(15)  # 기본값 15프레임마다 추론 (실시간 최적화)
         self.skip_frames_spinbox.setToolTip("N 프레임마다 한 번만 추론 (높을수록 빠름, 낮을수록 정확)")
         skip_layout.addWidget(self.skip_frames_spinbox)
         skip_layout.addWidget(QtWidgets.QLabel("프레임마다"))
@@ -458,6 +602,12 @@ class MainWindow(QtWidgets.QMainWindow):
         # 시각화 설정
         viz_group = QtWidgets.QGroupBox("시각화 설정")
         viz_layout = QtWidgets.QVBoxLayout()
+        
+        # YOLO 객체 감지 옵션
+        self.use_yolo_cb = QtWidgets.QCheckBox("YOLO 객체 감지 (무엇이 있는지 표시)")
+        self.use_yolo_cb.setChecked(True)  # 기본값: 활성화
+        self.use_yolo_cb.setToolTip("체크하면 YOLO로 객체(사람, 차량 등)를 감지하여 표시합니다")
+        viz_layout.addWidget(self.use_yolo_cb)
         
         # 히트맵 표시 옵션
         self.show_heatmap_cb = QtWidgets.QCheckBox("히트맵 표시 (기름 필터 효과)")
@@ -519,6 +669,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.btn_stop.clicked.connect(self.on_stop)
         self.threshold_slider.valueChanged.connect(self.on_threshold_changed)
         self.skip_frames_spinbox.valueChanged.connect(self.on_skip_frames_changed)
+        self.use_yolo_cb.toggled.connect(self.on_use_yolo_toggled)
         self.show_heatmap_cb.toggled.connect(self.on_show_heatmap_toggled)
         self.heatmap_alpha_slider.valueChanged.connect(self.on_heatmap_alpha_changed)
 
@@ -532,6 +683,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.inferencer.skip_frames = value
         self.inferencer.frame_counter = 0  # 리셋
         self.status_message(f"프레임 스킵: {value}프레임마다 추론")
+    
+    def on_use_yolo_toggled(self, checked: bool) -> None:
+        """YOLO 사용 토글"""
+        self.inferencer.use_yolo = checked
+        if checked and self.inferencer.yolo_model is None:
+            self.inferencer._init_yolo()
+        self.status_message("YOLO 객체 감지: " + ("켜짐" if checked else "꺼짐"))
     
     def on_show_heatmap_toggled(self, checked: bool) -> None:
         """히트맵 표시 토글"""
@@ -555,6 +713,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.status_message(f"비디오 선택: {filename}")
             self.inferencer.frame_buffer.clear()
             self.inferencer.frame_counter = 0  # 프레임 카운터 리셋
+            self.inferencer.yolo_frame_counter = 0  # YOLO 프레임 카운터 리셋
             self.frame_number = 0
             self.last_anomaly_frame = -1
 
@@ -584,7 +743,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.status_message("재생")
             return
 
-        self.reader = VideoReaderThread(self.video_path, fps_limit=15.0)  # FPS 제한 (성능 최적화)
+        self.reader = VideoReaderThread(self.video_path, fps_limit=8.0)  # FPS 제한 (더 느리게 - 실시간 최적화)
         self.reader.frameReady.connect(self.on_frame)
         self.reader.finished.connect(self.on_reader_finished)
         self.reader.start()
