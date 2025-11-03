@@ -224,10 +224,13 @@ class AiVadInferencer:
             return frame_bgr, 0.0, {"regions": None, "anomaly_type": "정상"}
         
         # 프레임 스킵: N 프레임마다 한 번만 추론
-        if self.frame_counter % self.skip_frames != 0:
-            # 추론하지 않고 마지막 결과 반환 (또는 원본 프레임)
+        should_infer = (self.frame_counter % self.skip_frames == 0)
+        
+        if not should_infer:
+            # 추론하지 않고 마지막 결과 반환 (캐싱된 점수 사용)
             if self.last_result is not None:
-                return self.last_result, self.last_score, {"regions": None, "anomaly_type": "정상"}
+                # 점수는 마지막 추론 결과 사용하되, 프레임은 최신 것으로 업데이트
+                return frame_bgr, self.last_score, {"regions": None, "anomaly_type": "정상"}
             return frame_bgr, 0.0, {"regions": None, "anomaly_type": "정상"}
 
         # 2프레임 클립 구성 (해상도 최적화: 160x160 사용)
@@ -238,10 +241,13 @@ class AiVadInferencer:
         with torch.no_grad():
             try:
                 # 모델 추론 실행 (region 추출 최소화를 위해 설정 최적화됨)
+                print(f"🔍 [추론 실행] 프레임 {self.frame_counter}, 배치 크기: {batch.shape}")
                 output = self.core(batch)
+                print(f"✅ [추론 성공] 출력 타입: {type(output)}")
             except Exception as model_error:
                 # 모델 추론 실패 시 - 객체 감지 실패 등
                 error_str = str(model_error)
+                print(f"⚠️ [추론 실패] 오류: {error_str[:100]}")
                 if "index 0 is out of bounds" in error_str:
                     # Region Extractor에서 객체 감지 실패 - 정상적으로 처리
                     output = None
@@ -251,6 +257,7 @@ class AiVadInferencer:
             
             # 출력이 None이거나 비어있는 경우 처리 - 해상도 조정
             if output is None:
+                print(f"⚠️ [출력 None] 추론 결과가 없음 - 기본값 사용")
                 score = 0.0
                 anomaly_map = np.random.rand(160, 160)
                 regions = None
@@ -264,14 +271,19 @@ class AiVadInferencer:
                         if isinstance(pred_score_tensor, torch.Tensor) and pred_score_tensor.numel() > 0:
                             if pred_score_tensor.shape[0] > 0:
                                 score = float(pred_score_tensor[0].detach().cpu().item())
+                                print(f"📊 [점수 추출] pred_score: {score:.4f}")
                     elif isinstance(output, list) and len(output) > 0:
                         if hasattr(output[0], 'pred_score'):
                             pred_score_tensor = output[0].pred_score
                             if isinstance(pred_score_tensor, torch.Tensor) and pred_score_tensor.numel() > 0:
                                 if pred_score_tensor.shape[0] > 0:
                                     score = float(pred_score_tensor[0].detach().cpu().item())
+                                    print(f"📊 [점수 추출] list[0].pred_score: {score:.4f}")
+                    else:
+                        print(f"⚠️ [점수 추출 실패] 출력에 pred_score 속성이 없음")
                 except (IndexError, RuntimeError) as e:
                     # 인덱스 오류나 런타임 오류 시 기본값 사용
+                    print(f"❌ [점수 추출 오류] {e}")
                     score = 0.0
                 
                 # 이상 맵 추출 (안전한 방법) - 해상도 조정 (160x160)
@@ -325,6 +337,7 @@ class AiVadInferencer:
         # 결과 캐싱 (성능 최적화)
         self.last_result = overlay
         self.last_score = score
+        print(f"💾 [결과 캐싱] 점수: {score:.4f}, 이상 유형: {anomaly_type}")
 
         return overlay, score, info
 
@@ -501,8 +514,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.frame_number = 0
         self.last_anomaly_frame = -1  # 마지막 이상 탐지 프레임 번호
 
-        # 모델 및 로거 초기화 (프레임 스킵: 15프레임마다 한 번만 추론 - 실시간 성능 최적화)
-        self.inferencer = AiVadInferencer(device="cuda", skip_frames=15)  # 15프레임마다 추론 (최대 성능)
+        # 모델 및 로거 초기화 (프레임 스킵: 5프레임마다 한 번만 추론 - 성능과 정확도 균형)
+        self.inferencer = AiVadInferencer(device="cuda", skip_frames=5)  # 5프레임마다 추론 (실제 추론이 실행되도록)
         self.logger = AnomalyLogger()
 
         # UI 구성
@@ -582,7 +595,7 @@ class MainWindow(QtWidgets.QMainWindow):
         skip_layout.addWidget(QtWidgets.QLabel("프레임 스킵:"))
         self.skip_frames_spinbox = QtWidgets.QSpinBox()
         self.skip_frames_spinbox.setRange(1, 30)  # 범위 확대 (최대 30프레임마다)
-        self.skip_frames_spinbox.setValue(15)  # 기본값 15프레임마다 추론 (실시간 최적화)
+        self.skip_frames_spinbox.setValue(5)  # 기본값 5프레임마다 추론 (실제 추론 실행 보장)
         self.skip_frames_spinbox.setToolTip("N 프레임마다 한 번만 추론 (높을수록 빠름, 낮을수록 정확)")
         skip_layout.addWidget(self.skip_frames_spinbox)
         skip_layout.addWidget(QtWidgets.QLabel("프레임마다"))
@@ -735,7 +748,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.status_message("재생")
             return
 
-        self.reader = VideoReaderThread(self.video_path, fps_limit=8.0)  # FPS 제한 (더 느리게 - 실시간 최적화)
+        self.reader = VideoReaderThread(self.video_path, fps_limit=10.0)  # FPS 제한 (적절한 속도)
         self.reader.frameReady.connect(self.on_frame)
         self.reader.finished.connect(self.on_reader_finished)
         self.reader.start()
