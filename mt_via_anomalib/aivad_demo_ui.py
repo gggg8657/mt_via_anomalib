@@ -1104,25 +1104,26 @@ class MainWindow(QtWidgets.QMainWindow):
         qimg = QtGui.QImage(rgb.data, w, h, 3 * w, QtGui.QImage.Format.Format_RGB888)
         pixmap = QtGui.QPixmap.fromImage(qimg)
         
-        # 비디오 크기를 라벨 크기에 맞춰 스케일하되, 원본 크기 이상으로 확대하지 않음 (엄격히 제한)
+        # 비디오 크기를 라벨 크기에 맞춰 스케일 (화면 크기에 맞춤)
         label_size = self.video_label.size()
         
-        # 원본 크기 이상으로 확대되지 않도록 엄격히 제한
+        # 화면 크기에 맞춰 스케일 (원본 크기 이하로만 확대 가능)
         if self.original_video_size:
-            # 원본 크기를 절대 넘지 않도록 제한
             orig_w, orig_h = self.original_video_size
-            max_width = min(label_size.width(), orig_w)
-            max_height = min(label_size.height(), orig_h)
             
-            # 종횡비 유지하며 원본 크기 이하로만 스케일
-            scale_w = max_width / orig_w
-            scale_h = max_height / orig_h
-            scale = min(scale_w, scale_h, 1.0)  # 1.0 이하로만 스케일 (확대 방지)
+            # 라벨 크기에 맞춰 스케일 계산
+            scale_w = label_size.width() / orig_w
+            scale_h = label_size.height() / orig_h
+            scale = min(scale_w, scale_h)  # 종횡비 유지하며 작은 스케일 사용
+            
+            # 원본 크기 이상으로 확대하지 않도록 제한
+            scale = min(scale, 1.0)  # 최대 1.0 (원본 크기)
             
             target_width = int(orig_w * scale)
             target_height = int(orig_h * scale)
             target_size = QtCore.QSize(target_width, target_height)
         else:
+            # 원본 크기가 없으면 라벨 크기에 맞춤
             target_size = label_size
         
         pixmap = pixmap.scaled(
@@ -1141,18 +1142,17 @@ class MainWindow(QtWidgets.QMainWindow):
             qimg = QtGui.QImage(rgb.data, w, h, 3 * w, QtGui.QImage.Format.Format_RGB888)
             pixmap = QtGui.QPixmap.fromImage(qimg)
             
-            # 비디오 크기를 라벨 크기에 맞춰 스케일하되, 원본 크기 이상으로 확대하지 않음 (엄격히 제한)
+            # 비디오 크기를 라벨 크기에 맞춰 스케일 (화면 크기에 맞춤)
             label_size = self.video_label.size()
-            
-            # 원본 크기 이상으로 확대되지 않도록 엄격히 제한
             orig_w, orig_h = self.original_video_size
-            max_width = min(label_size.width(), orig_w)
-            max_height = min(label_size.height(), orig_h)
             
-            # 종횡비 유지하며 원본 크기 이하로만 스케일
-            scale_w = max_width / orig_w
-            scale_h = max_height / orig_h
-            scale = min(scale_w, scale_h, 1.0)  # 1.0 이하로만 스케일 (확대 방지)
+            # 라벨 크기에 맞춰 스케일 계산
+            scale_w = label_size.width() / orig_w
+            scale_h = label_size.height() / orig_h
+            scale = min(scale_w, scale_h)  # 종횡비 유지하며 작은 스케일 사용
+            
+            # 원본 크기 이상으로 확대하지 않도록 제한
+            scale = min(scale, 1.0)  # 최대 1.0 (원본 크기)
             
             target_width = int(orig_w * scale)
             target_height = int(orig_h * scale)
