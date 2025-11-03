@@ -4800,3 +4800,39 @@ C:\Users\User\anaconda3\envs\mt_p310\lib\site-packages\torch\cuda\graphs.py:84: 
 ⚠️ [출력 None] 추론 결과가 없음 - 기본값 사용
 💾 [결과 캐싱] 점수: 0.0000, 이상 유형: 정상
 
+
+🔍 [추론 실행] 프레임 295, 배치 크기: torch.Size([1, 2, 3, 160, 160])
+⚠️ [추론 실패] 오류: cdist only supports at least 2D tensors, X2 got: 1D
+⚠️ [출력 None] 추론 결과가 없음 - 기본값 사용
+💾 [결과 캐싱] 점수: 0.0000, 이상 유형: 정상
+🔍 [추론 실행] 프레임 296, 배치 크기: torch.Size([1, 2, 3, 160, 160])
+⚠️ [추론 실패] 오류: cdist only supports at least 2D tensors, X2 got: 1D
+⚠️ [출력 None] 추론 결과가 없음 - 기본값 사용
+💾 [결과 캐싱] 점수: 0.0000, 이상 유형: 정상
+🔍 [추론 실행] 프레임 297, 배치 크기: torch.Size([1, 2, 3, 160, 160])
+⚠️ [추론 실패] 오류: cdist only supports at least 2D tensors, X2 got: 1D
+⚠️ [출력 None] 추론 결과가 없음 - 기본값 사용
+💾 [결과 캐싱] 점수: 0.0000, 이상 유형: 정상
+🔍 [추론 실행] 프레임 298, 배치 크기: torch.Size([1, 2, 3, 160, 160])
+⚠️ [추론 실패] 오류: cdist only supports at least 2D tensors, X2 got: 1D
+⚠️ [출력 None] 추론 결과가 없음 - 기본값 사용
+💾 [결과 캐싱] 점수: 0.0000, 이상 유형: 정상
+🔍 [추론 실행] 프레임 299, 배치 크기: torch.Size([1, 2, 3, 160, 160])
+⚠️ [추론 실패] 오류: cdist only supports at least 2D tensors, X2 got: 1D
+⚠️ [출력 None] 추론 결과가 없음 - 기본값 사용
+💾 [결과 캐싱] 점수: 0.0000, 이상 유형: 정상
+🔍 [추론 실행] 프레임 300, 배치 크기: torch.Size([1, 2, 3, 160, 160])
+⚠️ [추론 실패] 오류: cdist only supports at least 2D tensors, X2 got: 1D
+⚠️ [출력 None] 추론 결과가 없음 - 기본값 사용
+💾 [결과 캐싱] 점수: 0.0000, 이상 유형: 정상
+🔍 [추론 실행] 프레임 301, 배치 크기: torch.Size([1, 2, 3, 160, 160])
+⚠️ [추론 실패] 오류: cdist only supports at least 2D tensors, X2 got: 1D
+⚠️ [출력 None] 추론 결과가 없음 - 기본값 사용
+💾 [결과 캐싱] 점수: 0.0000, 이상 유형: 정상
+🔍 [추론 실행] 프레임 302, 배치 크기: torch.Size([1, 2, 3, 160, 160])
+⚠️ [추론 실패] 오류: cdist only supports at least 2D tensors, X2 got: 1D
+⚠️ [출력 None] 추론 결과가 없음 - 기본값 사용
+💾 [결과 캐싱] 점수: 0.0000, 이상 유형: 정상
+🔍 [추론 실행] 프레임 303, 배치 크기: torch.Size([1, 2, 3, 160, 160])
+
+
