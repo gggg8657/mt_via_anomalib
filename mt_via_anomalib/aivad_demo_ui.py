@@ -110,6 +110,9 @@ class AiVadInferencer:
         # Region Extractor는 그대로 사용 (amax 오류 방지를 위해 필요)
         # 대신 파라미터 조정으로 성능 최적화
         
+        # 체크포인트 로드 여부 추적 (성능 최적화)
+        self.has_checkpoint = False
+        
         # 체크포인트 자동 로드 시도 (있는 경우)
         self._try_load_checkpoint()
 
@@ -206,87 +209,95 @@ class AiVadInferencer:
                 try:
                     print(f"🔍 로컬 체크포인트 발견: {ckpt_path}, 로드 시도 중...")
                     self.load_checkpoint(ckpt_path)
+                    self.has_checkpoint = True  # 체크포인트 로드 성공
                     print(f"✅ 체크포인트 자동 로드 성공: {ckpt_path}")
                     return
                 except Exception as e:
                     print(f"⚠️ 체크포인트 로드 실패 ({ckpt_path}): {e}")
                     continue
         
-        # 2단계: anomalib에서 사전 훈련된 모델 다운로드 시도
-        print("🔍 로컬 체크포인트를 찾지 못했습니다. anomalib 사전 훈련된 모델 다운로드 시도 중...")
+        # 2단계: anomalib에서 사전 훈련된 모델 다운로드 시도 (조용히 실패 허용)
         try:
             self._download_pretrained_model()
             return
         except Exception as e:
-            print(f"⚠️ 사전 훈련된 모델 다운로드 실패: {e}")
+            # 조용히 실패 - AiVAD는 공식 사전 훈련 모델이 없을 수 있음
+            pass
         
-        print("ℹ️ 사용 가능한 체크포인트를 찾지 못했습니다. 기본 모델을 사용합니다.")
+        # 체크포인트가 없음을 표시 (성능 최적화를 위해)
+        self.has_checkpoint = False
+        print("ℹ️ 사용 가능한 체크포인트를 찾지 못했습니다. 빠른 프레임 차이 기반 점수만 사용합니다.")
         print("💡 체크포인트를 수동으로 로드하려면 UI에서 '체크포인트 로드' 버튼을 사용하세요.")
+        print("💡 또는 자신의 데이터셋으로 모델을 학습하여 체크포인트를 생성하세요.")
     
     def _download_pretrained_model(self) -> None:
-        """anomalib에서 사전 훈련된 모델 다운로드 및 로드"""
+        """
+        anomalib에서 사전 훈련된 모델 다운로드 시도
+        
+        참고: AiVAD는 비디오 이상 탐지 모델로, 일반적으로 공식 사전 훈련 모델이 제공되지 않습니다.
+        사용자가 특정 데이터셋에서 학습한 체크포인트를 사용해야 합니다.
+        """
+        print("ℹ️ AiVAD는 비디오 이상 탐지 모델로, 일반적으로 공식 사전 훈련 모델이 제공되지 않습니다.")
+        print("💡 사용자가 특정 데이터셋에서 학습한 체크포인트 파일을 사용해야 합니다.")
+        print("💡 학습하려면 anomalib의 train 스크립트를 사용하거나 UI에서 학습 기능을 활용하세요.")
+        
+        # 실제로 존재할 수 있는 곳들을 확인하되, 없어도 에러 없이 진행
         try:
-            # Hugging Face Hub를 통한 다운로드 시도
             from huggingface_hub import hf_hub_download
+            print("🔍 Hugging Face Hub에서 사용자 커뮤니티 모델 확인 중...")
             
-            print("📥 Hugging Face Hub에서 anomalib 사전 훈련된 AiVAD 모델 다운로드 중...")
-            
-            # anomalib 공식 모델 저장소에서 AiVAD 모델 시도
-            # 일반적인 모델 저장소 경로 시도
+            # 커뮤니티에서 공유될 수 있는 모델 저장소 시도
             possible_repos = [
-                "anomalib/aivad",
-                "anomalib/models",
-                "openvinotoolkit/anomalib",
+                "openvinotoolkit/anomalib",  # 공식 저장소 (모델은 없을 수도 있음)
             ]
             
             possible_files = [
+                "models/aivad.ckpt",
                 "aivad.ckpt",
-                "model.ckpt",
-                "pytorch_model.bin",
-                "aivad_pretrained.ckpt",
             ]
             
             for repo_id in possible_repos:
                 for file_name in possible_files:
                     try:
-                        print(f"   시도 중: {repo_id}/{file_name}")
                         checkpoint_path = hf_hub_download(
                             repo_id=repo_id,
                             filename=file_name,
                             cache_dir=os.path.expanduser("~/.cache/anomalib"),
+                            local_files_only=False,
                         )
-                        print(f"✅ 다운로드 성공: {checkpoint_path}")
-                        self.load_checkpoint(checkpoint_path)
-                        print(f"✅ 사전 훈련된 모델 로드 완료!")
-                        return
-                    except Exception as e:
+                        if os.path.exists(checkpoint_path):
+                            print(f"✅ 모델 발견: {checkpoint_path}")
+                            self.load_checkpoint(checkpoint_path)
+                            self.has_checkpoint = True  # 체크포인트 로드 성공
+                            print(f"✅ 사전 훈련된 모델 로드 완료!")
+                            return
+                    except Exception:
                         # 다음 시도
                         continue
             
-            raise Exception("사전 훈련된 모델을 찾을 수 없습니다.")
-            
         except ImportError:
-            print("⚠️ huggingface_hub 패키지가 없습니다. 설치 중...")
-            print("💡 pip install huggingface_hub 명령으로 설치하세요.")
-            raise
+            print("⚠️ huggingface_hub 패키지가 없습니다. (선택사항)")
         except Exception as e:
-            print(f"⚠️ Hugging Face Hub 다운로드 실패: {e}")
-            # 다른 방법 시도: torch.hub 또는 직접 URL 다운로드
-            print("🔄 다른 방법으로 사전 훈련된 모델 다운로드 시도 중...")
-            try:
-                self._download_from_url()
-            except Exception as e2:
-                print(f"⚠️ URL 다운로드도 실패: {e2}")
-                raise
+            print(f"⚠️ Hugging Face Hub 확인 실패: {e}")
+        
+        # URL 다운로드도 조용히 시도
+        try:
+            self._download_from_url()
+            return
+        except Exception:
+            pass
+        
+        # 모든 방법 실패 시 조용히 기본 모델 사용
+        print("ℹ️ 사전 훈련된 모델을 찾지 못했습니다. 기본 모델을 사용합니다.")
+        print("💡 체크포인트 파일이 있으면 '체크포인트 로드' 버튼을 사용하세요.")
     
     def _download_from_url(self) -> None:
-        """URL을 통한 사전 훈련된 모델 다운로드"""
+        """URL을 통한 사전 훈련된 모델 다운로드 시도"""
         import urllib.request
         
-        # anomalib 공식 모델 URL들 시도
+        # GitHub Releases나 다른 공개 URL 시도
         possible_urls = [
-            "https://github.com/openvinotoolkit/anomalib/releases/download/v2.2.0/aivad.ckpt",
-            "https://huggingface.co/anomalib/aivad/resolve/main/model.ckpt",
+            # 실제로 존재할 수 있는 URL들 (없어도 정상)
         ]
         
         cache_dir = os.path.expanduser("~/.cache/anomalib")
@@ -300,18 +311,20 @@ class AiVadInferencer:
                 if os.path.exists(checkpoint_path):
                     print(f"✅ 캐시된 모델 발견: {checkpoint_path}")
                     self.load_checkpoint(checkpoint_path)
+                    self.has_checkpoint = True  # 체크포인트 로드 성공
                     return
                 
-                print(f"📥 다운로드 중: {url}")
+                print(f"📥 다운로드 시도 중: {url}")
                 urllib.request.urlretrieve(url, checkpoint_path)
-                print(f"✅ 다운로드 완료: {checkpoint_path}")
-                self.load_checkpoint(checkpoint_path)
-                return
-            except Exception as e:
-                print(f"⚠️ URL 다운로드 실패 ({url}): {e}")
+                if os.path.exists(checkpoint_path) and os.path.getsize(checkpoint_path) > 0:
+                    print(f"✅ 다운로드 완료: {checkpoint_path}")
+                    self.load_checkpoint(checkpoint_path)
+                    self.has_checkpoint = True  # 체크포인트 로드 성공
+                    return
+            except Exception:
                 continue
         
-        raise Exception("사전 훈련된 모델 URL을 찾을 수 없습니다.")
+        raise Exception("사전 훈련된 모델을 찾을 수 없습니다.")
     
     def load_checkpoint(self, ckpt_path: str) -> None:
         """체크포인트 로드"""
@@ -321,6 +334,7 @@ class AiVadInferencer:
         self.model = loaded
         self.core = self.model.model
         self.core.eval().to(self.device)
+        self.has_checkpoint = True  # 체크포인트 로드 성공 표시
 
     def _calculate_frame_difference_score(self, frame_bgr: np.ndarray) -> float:
         """프레임 간 차이 기반 이상 점수 계산 (간단한 대안)"""
@@ -362,6 +376,15 @@ class AiVadInferencer:
         if len(self.frame_buffer) < 2:
             return frame_bgr, 0.0, {"regions": None, "anomaly_type": "정상"}
         
+        # 체크포인트가 없으면 무거운 모델 추론 건너뛰고 빠른 프레임 차이 기반 점수만 사용
+        if not self.has_checkpoint:
+            # 체크포인트 없음 - 빠른 프레임 차이 기반 점수만 계산
+            frame_diff_score = self._calculate_frame_difference_score(frame_bgr)
+            # 프레임 스킵도 적용 (더 자주 업데이트 가능)
+            if self.frame_counter % self.skip_frames == 0:
+                self.last_score = frame_diff_score
+            return frame_bgr, self.last_score, {"regions": None, "anomaly_type": "정상" if self.last_score < 0.3 else "이상"}
+        
         # 프레임 스킵: N 프레임마다 한 번만 추론
         should_infer = (self.frame_counter % self.skip_frames == 0)
         
@@ -379,7 +402,7 @@ class AiVadInferencer:
 
         with torch.no_grad():
             try:
-                # 모델 추론 실행
+                # 모델 추론 실행 (체크포인트가 있을 때만)
                 print(f"🔍 [추론 실행] 프레임 {self.frame_counter}, 배치 크기: {batch.shape}")
                 output = self.core(batch)
                 print(f"✅ [추론 성공] 출력 타입: {type(output)}")
