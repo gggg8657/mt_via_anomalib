@@ -216,6 +216,7 @@ mt_via_anomalib/results/
 *.pth
 *.h5
 *.hdf5
+*.ckpt
 
 # Dataset files
 datasets/
