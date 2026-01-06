@@ -221,3 +221,7 @@ mt_via_anomalib/results/
 # Dataset files
 datasets/
 data/
+
+# Large checkpoint files
+*.tar.gz
+checkpoints/
